@@ -64,6 +64,7 @@ let activeProjectId = localStorage.getItem(activeProjectStorageKey) || projects[
 let cards = getActiveProject()?.cards || [];
 let boardView = getDefaultBoardView();
 let activeDrag = null;
+let pendingCardDrag = null;
 let activePan = null;
 let pointerStart = null;
 let longPressTimer = null;
@@ -687,6 +688,10 @@ function beginCardDrag(event) {
   const card = event.target.closest(".scene-card");
   if (!card || event.target.closest("button")) return;
 
+  activateCardDrag(card, event);
+}
+
+function activateCardDrag(card, event) {
   const data = cards.find((item) => item.id === card.dataset.id);
   if (!data) return;
 
@@ -748,13 +753,21 @@ function endCardDrag() {
 
 function beginBoardPointer(event) {
   startLongPress(event);
+  const tappedCard = event.target.closest(".scene-card");
+  const tappedButton = event.target.closest("button");
   pointerStart = {
-    targetCardId: event.target.closest(".scene-card")?.dataset.id || null,
+    targetCardId: tappedCard?.dataset.id || null,
     x: event.clientX,
     y: event.clientY,
   };
 
-  if (event.target.closest(".scene-card")) {
+  if (tappedCard) {
+    if (isMobileLayout() && !tappedButton) {
+      pendingCardDrag = { element: tappedCard, event };
+      board.setPointerCapture(event.pointerId);
+      return;
+    }
+
     beginCardDrag(event);
     return;
   }
@@ -771,12 +784,21 @@ function beginBoardPointer(event) {
 }
 
 function moveBoardPointer(event) {
+  const movedDistance = pointerStart
+    ? Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y)
+    : 0;
+
   if (
     longPressTimer &&
     pointerStart &&
-    Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) > getTapTolerance()
+    movedDistance > getTapTolerance()
   ) {
     cancelLongPress();
+  }
+
+  if (pendingCardDrag && movedDistance > getTapTolerance()) {
+    activateCardDrag(pendingCardDrag.element, event);
+    pendingCardDrag = null;
   }
 
   if (activeDrag) {
@@ -802,6 +824,7 @@ function endBoardPointer(event) {
   if (tappedCardId && (!tappedButton || tappedButton.closest(".scene-card") === null) && !moved && !longPressOpened) {
     openSceneModal(tappedCardId);
   }
+  pendingCardDrag = null;
   pointerStart = null;
   longPressOpened = false;
 
