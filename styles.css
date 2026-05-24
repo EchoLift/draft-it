@@ -80,6 +80,13 @@ body[data-layer="cards"] .screenplay-layer {
   gap: 10px;
 }
 
+.project-header-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .docs-link {
   border: 1px solid #cfd5dd;
   border-radius: 999px;
@@ -89,6 +96,12 @@ body[data-layer="cards"] .screenplay-layer {
   font-size: 0.86rem;
   font-weight: 850;
   text-decoration: none;
+}
+
+.donate-link {
+  border-color: rgba(36, 92, 81, 0.28);
+  background: var(--accent);
+  color: #fff;
 }
 
 .select-all-export {
