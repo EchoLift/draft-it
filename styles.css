@@ -63,6 +63,7 @@ body[data-layer="cards"] .screenplay-layer {
 
 .projects-header,
 .screenplay-toolbar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -81,6 +82,7 @@ body[data-layer="cards"] .screenplay-layer {
 }
 
 .project-header-links {
+  margin-left: auto;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -1094,7 +1096,23 @@ textarea:focus {
     padding: 8px 10px;
   }
 
-  .project-form,
+  .projects-header {
+    padding-top: 58px;
+  }
+
+  .project-header-links {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    justify-content: end;
+    margin-left: 0;
+  }
+
+  .project-header-links .docs-link {
+    padding: 7px 11px;
+    font-size: 0.78rem;
+  }
+
   .project-form {
     display: grid;
     grid-template-columns: 1fr 1fr;
