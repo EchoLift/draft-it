@@ -16,7 +16,18 @@
           </div>
           <div class="project-header-links">
             <a class="docs-link" href="/docs/">Docs</a>
-            <a class="docs-link donate-link" href="https://payments.cashfree.com/forms/draft-it" target="_blank" rel="noopener noreferrer">Donate</a>
+            <a class="cashfree-donate" href="https://payments.cashfree.com/forms/draft-it" data-donate-trigger>
+              <span class="cashfree-button">
+                <img src="https://cashfreelogo.cashfree.com/cashfreepayments/logosvgs/Group_4355.svg" alt="Cashfree" class="cashfree-logo" />
+                <span class="cashfree-copy">
+                  <span class="cashfree-title">Donate</span>
+                  <span class="cashfree-powered">
+                    <span>Powered By Cashfree</span>
+                    <img src="https://cashfreelogo.cashfree.com/cashfreepayments/logosvgs/Group_4355.svg" alt="" class="cashfree-small-logo" />
+                  </span>
+                </span>
+              </span>
+            </a>
           </div>
           <form id="project-form" class="project-form">
             <input id="project-title-input" type="text" maxlength="60" placeholder="New screenplay project" required />
@@ -191,6 +202,18 @@
           <span id="scene-modal-emotion" class="emotion-label"></span>
           <h2 id="scene-modal-title"></h2>
           <p id="scene-modal-text"></p>
+        </article>
+      </div>
+
+      <div id="donate-modal" class="donate-modal" hidden>
+        <article class="donate-card">
+          <button id="donate-modal-close" class="mobile-close" type="button" title="Close" aria-label="Close">×</button>
+          <h2>Donate to developer</h2>
+          <img
+            src="/assets/donate-qr.png"
+            alt="QR code for Draft It donation"
+          />
+          <a href="https://payments.cashfree.com/forms/draft-it" target="_blank" rel="noopener noreferrer">Open payment page</a>
         </article>
       </div>
     </main>

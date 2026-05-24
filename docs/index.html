@@ -12,7 +12,18 @@
         <a class="brand" href="/">Draft It</a>
         <div class="nav-links">
           <a href="/">Open app</a>
-          <a class="donate-link" href="https://payments.cashfree.com/forms/draft-it" target="_blank" rel="noopener noreferrer">Donate to developer</a>
+          <a class="cashfree-donate" href="https://payments.cashfree.com/forms/draft-it" data-donate-trigger>
+            <span class="cashfree-button">
+              <img src="https://cashfreelogo.cashfree.com/cashfreepayments/logosvgs/Group_4355.svg" alt="Cashfree" class="cashfree-logo" />
+              <span class="cashfree-copy">
+                <span class="cashfree-title">Donate</span>
+                <span class="cashfree-powered">
+                  <span>Powered By Cashfree</span>
+                  <img src="https://cashfreelogo.cashfree.com/cashfreepayments/logosvgs/Group_4355.svg" alt="" class="cashfree-small-logo" />
+                </span>
+              </span>
+            </span>
+          </a>
         </div>
       </nav>
       <div class="hero">
@@ -168,5 +179,31 @@
         </p>
       </section>
     </main>
+    <div id="donate-modal" class="donate-modal" hidden>
+      <article class="donate-card">
+        <button id="donate-modal-close" type="button" title="Close" aria-label="Close">×</button>
+        <h2>Donate to developer</h2>
+        <img
+          src="/assets/donate-qr.png"
+          alt="QR code for Draft It donation"
+        />
+        <a href="https://payments.cashfree.com/forms/draft-it" target="_blank" rel="noopener noreferrer">Open payment page</a>
+      </article>
+    </div>
+    <script>
+      const donateModal = document.querySelector("#donate-modal");
+      document.querySelectorAll("[data-donate-trigger]").forEach((trigger) => {
+        trigger.addEventListener("click", (event) => {
+          event.preventDefault();
+          donateModal.hidden = false;
+        });
+      });
+      document.querySelector("#donate-modal-close").addEventListener("click", () => {
+        donateModal.hidden = true;
+      });
+      donateModal.addEventListener("click", (event) => {
+        if (event.target === donateModal) donateModal.hidden = true;
+      });
+    </script>
   </body>
 </html>

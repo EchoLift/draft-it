@@ -42,6 +42,9 @@ const sceneModalClose = document.querySelector("#scene-modal-close");
 const sceneModalEmotion = document.querySelector("#scene-modal-emotion");
 const sceneModalTitle = document.querySelector("#scene-modal-title");
 const sceneModalText = document.querySelector("#scene-modal-text");
+const donateModal = document.querySelector("#donate-modal");
+const donateModalClose = document.querySelector("#donate-modal-close");
+const donateTriggers = Array.from(document.querySelectorAll("[data-donate-trigger]"));
 const swatches = Array.from(document.querySelectorAll(".swatch"));
 const actionIcon = form.querySelector(".action-icon");
 const actionLabel = form.querySelector(".action-label");
@@ -520,6 +523,15 @@ function openSceneModal(id) {
 
 function closeSceneModal() {
   sceneModal.hidden = true;
+}
+
+function openDonateModal(event) {
+  event.preventDefault();
+  donateModal.hidden = false;
+}
+
+function closeDonateModal() {
+  donateModal.hidden = true;
 }
 
 function clamp(value, min, max) {
@@ -1072,6 +1084,11 @@ cardMenuDelete.addEventListener("click", () => deleteCard(cardMenuCardId));
 sceneModalClose.addEventListener("click", closeSceneModal);
 sceneModal.addEventListener("click", (event) => {
   if (event.target === sceneModal) closeSceneModal();
+});
+donateTriggers.forEach((trigger) => trigger.addEventListener("click", openDonateModal));
+donateModalClose.addEventListener("click", closeDonateModal);
+donateModal.addEventListener("click", (event) => {
+  if (event.target === donateModal) closeDonateModal();
 });
 sequenceList.addEventListener("dragstart", handleSequenceDragStart);
 sequenceList.addEventListener("dragover", handleSequenceDragOver);
