@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Draft It - Card Board</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="projects-layer" class="projects-layer" aria-label="Projects">
+        <div class="projects-header">
+          <div>
+            <p class="eyebrow">Draft It</p>
+            <h1>Projects</h1>
+          </div>
+          <form id="project-form" class="project-form">
+            <input id="project-title-input" type="text" maxlength="60" placeholder="New screenplay project" required />
+            <button class="primary-action" type="submit">Create project</button>
+          </form>
+        </div>
+        <div id="project-list" class="project-list"></div>
+      </section>
+
+      <aside class="panel" aria-label="Scene card editor">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div>
+            <p class="eyebrow">Draft It</p>
+            <h1>Scene Cards</h1>
+          </div>
+        </div>
+
+        <form id="card-form" class="composer">
+          <div class="mobile-drawer-heading">
+            <h2>New card</h2>
+            <button class="mobile-close" type="button" title="Close" aria-label="Close">×</button>
+          </div>
+
+          <label>
+            <span>Title</span>
+            <input id="title-input" name="title" type="text" maxlength="48" placeholder="Cold open" required />
+          </label>
+
+          <label>
+            <span>Scene</span>
+            <textarea id="scene-input" name="scene" rows="8" maxlength="360" placeholder="Write the beat, conflict, reveal, or visual idea for this scene." required></textarea>
+          </label>
+
+          <fieldset class="swatches">
+            <legend>Scene emotion</legend>
+            <label class="swatch is-selected" style="--swatch: #ffe08a" title="Warmth">
+              <input type="radio" name="color" value="#ffe08a" checked />
+              <span>Warmth</span>
+            </label>
+            <label class="swatch" style="--swatch: #ffadad" title="Tension">
+              <input type="radio" name="color" value="#ffadad" />
+              <span>Tension</span>
+            </label>
+            <label class="swatch" style="--swatch: #9bf6ff" title="Relief">
+              <input type="radio" name="color" value="#9bf6ff" />
+              <span>Relief</span>
+            </label>
+            <label class="swatch" style="--swatch: #caffbf" title="Hope">
+              <input type="radio" name="color" value="#caffbf" />
+              <span>Hope</span>
+            </label>
+            <label class="swatch" style="--swatch: #ffc6ff" title="Romance">
+              <input type="radio" name="color" value="#ffc6ff" />
+              <span>Romance</span>
+            </label>
+            <label class="swatch" style="--swatch: #d7d2ff" title="Mystery">
+              <input type="radio" name="color" value="#d7d2ff" />
+              <span>Mystery</span>
+            </label>
+          </fieldset>
+
+          <button class="primary-action" type="submit">
+            <span class="action-icon" aria-hidden="true">+</span>
+            <span class="action-label">Stick to board</span>
+          </button>
+        </form>
+
+        <section class="sequence" aria-label="Scene order">
+          <div class="section-heading">
+            <h2>Order</h2>
+            <div class="section-actions">
+              <button id="mobile-projects-link" class="zoom-button mobile-nav-link" type="button">Projects</button>
+              <button id="mobile-script-link" class="zoom-button mobile-nav-link" type="button">Script</button>
+              <button id="clear-board" class="icon-button" type="button" title="Delete all cards" aria-label="Delete all cards">🗑</button>
+              <button class="mobile-close" type="button" title="Close" aria-label="Close">×</button>
+            </div>
+          </div>
+          <ol id="sequence-list" class="sequence-list"></ol>
+        </section>
+      </aside>
+
+      <section class="workspace" aria-label="Whiteboard workspace">
+        <header class="board-toolbar">
+          <div>
+            <p class="eyebrow">Whiteboard</p>
+            <h2 id="active-project-title">Move cards anywhere</h2>
+          </div>
+          <div class="board-stats">
+            <button id="show-projects" class="zoom-button" type="button" title="Projects" aria-label="Projects">Projects</button>
+            <button id="show-screenplay" class="zoom-button" type="button" title="Screenplay" aria-label="Screenplay">Script</button>
+            <button id="zoom-out" class="zoom-button" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+            <span id="zoom-level">100%</span>
+            <button id="zoom-in" class="zoom-button" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+            <button id="zoom-reset" class="zoom-button" type="button" title="Reset board view" aria-label="Reset board view">↺</button>
+            <span id="card-count">0 cards</span>
+            <span id="save-state">Saved locally</span>
+          </div>
+        </header>
+
+        <div id="board" class="board" aria-label="Freestyle card board">
+          <div id="board-surface" class="board-surface">
+            <div id="empty-state" class="empty-state">
+              <div class="empty-visual" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <h2>Start with one scene.</h2>
+              <p>Create a card, then drag it around the board as your script takes shape.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="screenplay-layer" class="screenplay-layer" aria-label="Screenplay">
+        <header class="screenplay-toolbar">
+          <div>
+            <p class="eyebrow">Screenplay</p>
+            <h1 id="screenplay-project-title">Screenplay</h1>
+          </div>
+          <div class="screenplay-actions">
+            <button id="script-to-projects" class="zoom-button" type="button">Projects</button>
+            <button id="script-to-cards" class="zoom-button" type="button">Cards</button>
+            <label class="select-all-export">
+              <input id="select-all-script-cards" type="checkbox" />
+              <span>Select all</span>
+            </label>
+            <button id="build-script" class="primary-action" type="button">Use scene</button>
+            <button id="export-script" class="primary-action" type="button">Export</button>
+          </div>
+        </header>
+        <div class="screenplay-workspace">
+          <aside class="script-card-source">
+            <h2>Available cards</h2>
+            <ol id="script-card-list" class="script-card-list"></ol>
+          </aside>
+          <label class="script-editor">
+            <span id="active-script-card-title">Select a card</span>
+            <div class="format-toolbar" aria-label="Screenplay format tools">
+              <button type="button" data-format="scene">Scene</button>
+              <button type="button" data-format="action">Action</button>
+              <button type="button" data-format="character">Character</button>
+              <button type="button" data-format="dialogue">Dialogue</button>
+              <button type="button" data-format="parenthetical">Parenthetical</button>
+              <button type="button" data-format="transition">Transition</button>
+              <button type="button" data-format="shot">Shot</button>
+            </div>
+            <textarea id="screenplay-input" rows="24" placeholder="Select a card, then write that card's screenplay here."></textarea>
+          </label>
+        </div>
+      </section>
+
+      <div class="mobile-actions" aria-label="Mobile board actions">
+        <button id="mobile-add-card" type="button" title="Add card" aria-label="Add card">+</button>
+        <button id="mobile-manage-cards" type="button" title="Manage cards" aria-label="Manage cards">▦</button>
+      </div>
+
+      <div id="card-menu" class="card-menu" hidden>
+        <button id="card-menu-close" class="mobile-close" type="button" title="Close" aria-label="Close">×</button>
+        <button id="card-menu-edit" type="button">Edit card</button>
+        <button id="card-menu-delete" type="button">Delete card</button>
+      </div>
+
+      <div id="scene-modal" class="scene-modal" hidden>
+        <article class="scene-modal-card">
+          <button id="scene-modal-close" class="mobile-close" type="button" title="Close" aria-label="Close">×</button>
+          <span id="scene-modal-emotion" class="emotion-label"></span>
+          <h2 id="scene-modal-title"></h2>
+          <p id="scene-modal-text"></p>
+        </article>
+      </div>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
