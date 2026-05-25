@@ -625,6 +625,30 @@ function getCurrentLineRange(textarea) {
   return { lineStart, lineEnd, line: value.slice(lineStart, lineEnd) };
 }
 
+function handleScreenplayEnter(event) {
+  if (event.key !== "Enter" || event.shiftKey || screenplayInput.disabled) return;
+
+  const { line } = getCurrentLineRange(screenplayInput);
+  const className = getScreenplayLineClass(line);
+  const nextLinePrefixes = {
+    character: "          ",
+    "scene-heading": "",
+  };
+
+  if (!Object.hasOwn(nextLinePrefixes, className)) return;
+
+  event.preventDefault();
+  const prefix = nextLinePrefixes[className];
+  const value = screenplayInput.value;
+  const start = screenplayInput.selectionStart;
+  const end = screenplayInput.selectionEnd;
+  const insertion = `\n${prefix}`;
+  screenplayInput.value = `${value.slice(0, start)}${insertion}${value.slice(end)}`;
+  const cursor = start + insertion.length;
+  screenplayInput.setSelectionRange(cursor, cursor);
+  saveScreenplay();
+}
+
 function formatScreenplayLine(mode) {
   if (screenplayInput.disabled) return;
 
@@ -1391,6 +1415,7 @@ scriptToCharacters.addEventListener("click", (event) => {
 buildScript.addEventListener("click", seedActiveCardScreenplay);
 exportScript.addEventListener("click", openExportModal);
 screenplayInput.addEventListener("input", saveScreenplay);
+screenplayInput.addEventListener("keydown", handleScreenplayEnter);
 formatToolbar.addEventListener("click", (event) => {
   const button = event.target.closest("[data-format]");
   if (!button) return;
