@@ -2,6 +2,7 @@ const board = document.querySelector("#board");
 const boardSurface = document.querySelector("#board-surface");
 const projectForm = document.querySelector("#project-form");
 const projectTitleInput = document.querySelector("#project-title-input");
+const projectAuthorInput = document.querySelector("#project-author-input");
 const projectList = document.querySelector("#project-list");
 const activeProjectTitle = document.querySelector("#active-project-title");
 const screenplayProjectTitle = document.querySelector("#screenplay-project-title");
@@ -60,6 +61,12 @@ const characterScreenTimeInput = document.querySelector("#character-screen-time-
 const characterStrip = document.querySelector("#character-strip");
 const characterDetail = document.querySelector("#character-detail");
 const characterSubmitButton = characterForm.querySelector(".primary-action");
+const exportModal = document.querySelector("#export-modal");
+const exportModalClose = document.querySelector("#export-modal-close");
+const exportIncludeCharacters = document.querySelector("#export-include-characters");
+const exportCharacterList = document.querySelector("#export-character-list");
+const exportCancel = document.querySelector("#export-cancel");
+const exportConfirm = document.querySelector("#export-confirm");
 const donateModal = document.querySelector("#donate-modal");
 const donateModalClose = document.querySelector("#donate-modal-close");
 const donateTriggers = Array.from(document.querySelectorAll("[data-donate-trigger]"));
@@ -112,6 +119,7 @@ function loadProjects() {
     const migrated = [{
       id: crypto.randomUUID(),
       title: "First Draft",
+      author: "",
       cards: legacyCards,
       characters: [],
       screenplay: "",
@@ -126,8 +134,12 @@ function loadProjects() {
 }
 
 function ensureProjectCollections(project) {
+  project.author = project.author || "";
   project.cards = Array.isArray(project.cards) ? project.cards : [];
   project.characters = Array.isArray(project.characters) ? project.characters : [];
+  project.characters.forEach((character) => {
+    if (character.shade === "RED") character.shade = "WHITE";
+  });
   return project;
 }
 
@@ -168,6 +180,7 @@ function setLayer(layer) {
   hideCardMenu();
   closeSceneModal();
   closeCharactersModal();
+  closeExportModal();
   if (layer === "projects") renderProjects();
   if (layer === "screenplay") renderScreenplay();
 }
@@ -214,7 +227,7 @@ function renderProjects() {
     `;
     item.querySelector("h2").textContent = project.title;
     item.querySelector(".project-meta").textContent =
-      `${project.cards.length} ${project.cards.length === 1 ? "card" : "cards"} · ${project.characters.length} ${project.characters.length === 1 ? "character" : "characters"}`;
+      `${project.author ? `by ${project.author} · ` : ""}${project.cards.length} ${project.cards.length === 1 ? "card" : "cards"} · ${project.characters.length} ${project.characters.length === 1 ? "character" : "characters"}`;
     projectList.append(item);
   });
 }
@@ -222,11 +235,13 @@ function renderProjects() {
 function createProject(event) {
   event.preventDefault();
   const title = projectTitleInput.value.trim();
-  if (!title) return;
+  const author = projectAuthorInput.value.trim();
+  if (!title || !author) return;
 
   const project = {
     id: crypto.randomUUID(),
     title,
+    author,
     cards: [],
     characters: [],
     screenplay: "",
@@ -234,6 +249,7 @@ function createProject(event) {
   };
   projects.unshift(project);
   projectTitleInput.value = "";
+  projectAuthorInput.value = "";
   setActiveProject(project.id, "cards");
 }
 
@@ -362,7 +378,69 @@ function renderFormattedScreenplay(text) {
     .join("");
 }
 
-function exportCurrentProject() {
+function openExportModal() {
+  const project = getActiveProject();
+  if (!project) return;
+
+  if (!project.author) {
+    const author = prompt("Author name for the title page:");
+    if (author === null) return;
+    project.author = author.trim();
+    saveProjects();
+    renderProjects();
+  }
+
+  saveScreenplay();
+  const selectedCards = project.cards.filter((card) => selectedExportCardIds.has(card.id));
+  if (!selectedCards.length) {
+    alert("Select at least one card to export.");
+    return;
+  }
+
+  renderExportCharacterOptions(project);
+  exportModal.hidden = false;
+}
+
+function closeExportModal() {
+  exportModal.hidden = true;
+}
+
+function renderExportCharacterOptions(project) {
+  exportCharacterList.innerHTML = "";
+  const hasCharacters = project.characters.length > 0;
+  exportIncludeCharacters.checked = hasCharacters;
+  exportIncludeCharacters.disabled = !hasCharacters;
+  exportCharacterList.hidden = false;
+
+  if (!hasCharacters) {
+    exportCharacterList.innerHTML = "<p class=\"export-empty\">No characters created yet.</p>";
+    return;
+  }
+
+  project.characters.forEach((character) => {
+    const label = document.createElement("label");
+    label.className = "export-character-option";
+    label.innerHTML = `
+      <input type="checkbox" value="${character.id}" checked />
+      <span>
+        <strong></strong>
+        <small></small>
+      </span>
+    `;
+    label.querySelector("strong").textContent = character.name;
+    label.querySelector("small").textContent = `${character.shade || "GRAY"} · ${character.screenTime || "MEDIUM"}`;
+    exportCharacterList.append(label);
+  });
+}
+
+function exportFromOptions() {
+  const characterIds = exportIncludeCharacters.checked
+    ? Array.from(exportCharacterList.querySelectorAll("input:checked")).map((input) => input.value)
+    : [];
+  exportCurrentProject(characterIds);
+}
+
+function exportCurrentProject(characterIds = []) {
   const project = getActiveProject();
   if (!project) return;
 
@@ -380,6 +458,39 @@ function exportCurrentProject() {
   }
 
   const title = escapeHtml(project.title);
+  const author = escapeHtml(project.author || "");
+  const selectedCharacters = project.characters.filter((character) => characterIds.includes(character.id));
+  const titlePage = `
+    <section class="title-page">
+      <div>
+        <h1>${title}</h1>
+        ${author ? `<p>Written by</p><h2>${author}</h2>` : ""}
+      </div>
+    </section>
+  `;
+  const characterPages = selectedCharacters.length
+    ? `
+      <section class="characters-print">
+        <h1>Characters</h1>
+        ${selectedCharacters.map((character) => `
+          <article class="print-character">
+            <header>
+              <h2>${escapeHtml(character.name)}</h2>
+              <p>${escapeHtml(character.shade || "GRAY")} · ${escapeHtml(character.screenTime || "MEDIUM")}</p>
+            </header>
+            <dl>
+              <dt>Biggest desire/goal</dt>
+              <dd>${escapeHtml(character.goal || "")}</dd>
+              <dt>Biggest fear</dt>
+              <dd>${escapeHtml(character.fear || "")}</dd>
+              <dt>Lie he/she believes</dt>
+              <dd>${escapeHtml(character.lie || "")}</dd>
+            </dl>
+          </article>
+        `).join("")}
+      </section>
+    `
+    : "";
   const body = selectedCards
     .map((card, index) => `
       <section class="scene">
@@ -400,6 +511,68 @@ function exportCurrentProject() {
           body { font-family: Courier, monospace; margin: 0; color: #111; }
           h1 { font-family: Arial, sans-serif; margin-bottom: 32px; }
           h2 { font-family: Arial, sans-serif; font-size: 18px; margin: 0 0 6px; }
+          .title-page {
+            display: grid;
+            align-items: center;
+            min-height: 9.2in;
+            break-after: page;
+            text-align: center;
+          }
+          .title-page h1 {
+            margin: 0 0 42px;
+            font-size: 32px;
+            text-transform: uppercase;
+          }
+          .title-page p {
+            margin: 0 0 8px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+          }
+          .title-page h2 {
+            font-size: 18px;
+          }
+          .characters-print {
+            break-after: page;
+          }
+          .characters-print h1 {
+            margin-bottom: 22px;
+          }
+          .print-character {
+            break-inside: avoid;
+            margin-bottom: 20px;
+            border-top: 1px solid #bbb;
+            padding-top: 12px;
+            font-family: Arial, sans-serif;
+          }
+          .print-character header {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+          }
+          .print-character header p {
+            margin: 0;
+            color: #666;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+          }
+          .print-character dl {
+            display: grid;
+            gap: 4px;
+            margin: 10px 0 0;
+          }
+          .print-character dt {
+            color: #666;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+          }
+          .print-character dd {
+            margin: 0 0 8px;
+            line-height: 1.35;
+            white-space: pre-wrap;
+          }
           .emotion { font-family: Arial, sans-serif; color: #666; font-size: 12px; font-weight: 700; text-transform: uppercase; }
           .scene { break-after: page; margin-bottom: 32px; }
           .scene:last-child { break-after: auto; }
@@ -432,13 +605,15 @@ function exportCurrentProject() {
         </style>
       </head>
       <body>
-        <h1>${title}</h1>
+        ${titlePage}
+        ${characterPages}
         ${body}
         <script>window.onload = () => { window.print(); };</script>
       </body>
     </html>
   `);
   printWindow.document.close();
+  closeExportModal();
 }
 
 function getCurrentLineRange(textarea) {
@@ -579,11 +754,13 @@ function closeCharactersModal() {
 
 function openCharacterForm() {
   characterForm.hidden = false;
+  charactersModal.classList.add("is-creating-character");
   requestAnimationFrame(() => characterNameInput.focus());
 }
 
 function closeCharacterForm() {
   characterForm.hidden = true;
+  charactersModal.classList.remove("is-creating-character");
 }
 
 function renderCharacters() {
@@ -1212,7 +1389,7 @@ scriptToCharacters.addEventListener("click", (event) => {
   openCharactersModal();
 });
 buildScript.addEventListener("click", seedActiveCardScreenplay);
-exportScript.addEventListener("click", exportCurrentProject);
+exportScript.addEventListener("click", openExportModal);
 screenplayInput.addEventListener("input", saveScreenplay);
 formatToolbar.addEventListener("click", (event) => {
   const button = event.target.closest("[data-format]");
@@ -1277,6 +1454,15 @@ characterStrip.addEventListener("click", (event) => {
 charactersModalClose.addEventListener("click", closeCharactersModal);
 charactersModal.addEventListener("click", (event) => {
   if (event.target === charactersModal) closeCharactersModal();
+});
+exportIncludeCharacters.addEventListener("change", () => {
+  exportCharacterList.toggleAttribute("hidden", !exportIncludeCharacters.checked);
+});
+exportConfirm.addEventListener("click", exportFromOptions);
+exportCancel.addEventListener("click", closeExportModal);
+exportModalClose.addEventListener("click", closeExportModal);
+exportModal.addEventListener("click", (event) => {
+  if (event.target === exportModal) closeExportModal();
 });
 donateTriggers.forEach((trigger) => trigger.addEventListener("click", openDonateModal));
 donateModalClose.addEventListener("click", closeDonateModal);

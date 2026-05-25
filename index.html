@@ -26,6 +26,7 @@
           </div>
           <form id="project-form" class="project-form">
             <input id="project-title-input" type="text" maxlength="60" placeholder="New screenplay project" required />
+            <input id="project-author-input" type="text" maxlength="60" placeholder="Author name" required />
             <button class="primary-action" type="submit">Create project</button>
           </form>
         </div>
@@ -98,7 +99,6 @@
         <section class="sequence" aria-label="Scene order">
           <div class="section-heading">
             <h2>Order</h2>
-            <br/>
             <div class="section-actions">
               <button id="mobile-projects-link" class="zoom-button mobile-nav-link" type="button">Projects</button>
               <button id="mobile-characters-link" class="zoom-button mobile-nav-link" type="button">Characters</button>
@@ -239,7 +239,7 @@
               <label>
                 <span>Shade</span>
                 <select id="character-shade-input" required>
-                  <option value="RED">RED</option>
+                  <option value="WHITE">WHITE</option>
                   <option value="GRAY">GRAY</option>
                   <option value="BLACK">BLACK</option>
                 </select>
@@ -259,6 +259,25 @@
             <div id="character-strip" class="character-strip"></div>
             <div id="character-detail" class="character-detail"></div>
           </section>
+        </article>
+      </div>
+
+      <div id="export-modal" class="export-modal" hidden>
+        <article class="export-card">
+          <button id="export-modal-close" class="mobile-close" type="button" title="Close" aria-label="Close">×</button>
+          <header>
+            <p class="eyebrow">Export</p>
+            <h2>PDF options</h2>
+          </header>
+          <label class="export-include">
+            <input id="export-include-characters" type="checkbox" />
+            <span>Print character briefs after title page</span>
+          </label>
+          <div id="export-character-list" class="export-character-list"></div>
+          <div class="export-actions">
+            <button id="export-cancel" class="zoom-button" type="button">Cancel</button>
+            <button id="export-confirm" class="primary-action" type="button">Export PDF</button>
+          </div>
         </article>
       </div>
 
