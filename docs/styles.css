@@ -83,11 +83,9 @@ nav {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 0 10px;
 }
 
 .cashfree-title {
-  margin-bottom: 5px;
   color: #fff;
   font-family: Arial, sans-serif;
   font-size: 14px;

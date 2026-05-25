@@ -6,11 +6,14 @@ const projectList = document.querySelector("#project-list");
 const activeProjectTitle = document.querySelector("#active-project-title");
 const screenplayProjectTitle = document.querySelector("#screenplay-project-title");
 const showProjects = document.querySelector("#show-projects");
+const showCharacters = document.querySelector("#show-characters");
 const showScreenplay = document.querySelector("#show-screenplay");
 const mobileProjectsLink = document.querySelector("#mobile-projects-link");
+const mobileCharactersLink = document.querySelector("#mobile-characters-link");
 const mobileScriptLink = document.querySelector("#mobile-script-link");
 const scriptToProjects = document.querySelector("#script-to-projects");
 const scriptToCards = document.querySelector("#script-to-cards");
+const scriptToCharacters = document.querySelector("#script-to-characters");
 const buildScript = document.querySelector("#build-script");
 const exportScript = document.querySelector("#export-script");
 const screenplayInput = document.querySelector("#screenplay-input");
@@ -42,6 +45,21 @@ const sceneModalClose = document.querySelector("#scene-modal-close");
 const sceneModalEmotion = document.querySelector("#scene-modal-emotion");
 const sceneModalTitle = document.querySelector("#scene-modal-title");
 const sceneModalText = document.querySelector("#scene-modal-text");
+const charactersModal = document.querySelector("#characters-modal");
+const charactersModalClose = document.querySelector("#characters-modal-close");
+const charactersProjectTitle = document.querySelector("#characters-project-title");
+const characterForm = document.querySelector("#character-form");
+const characterAddButton = document.querySelector("#character-add-button");
+const characterFormClose = document.querySelector("#character-form-close");
+const characterNameInput = document.querySelector("#character-name-input");
+const characterGoalInput = document.querySelector("#character-goal-input");
+const characterFearInput = document.querySelector("#character-fear-input");
+const characterLieInput = document.querySelector("#character-lie-input");
+const characterShadeInput = document.querySelector("#character-shade-input");
+const characterScreenTimeInput = document.querySelector("#character-screen-time-input");
+const characterStrip = document.querySelector("#character-strip");
+const characterDetail = document.querySelector("#character-detail");
+const characterSubmitButton = characterForm.querySelector(".primary-action");
 const donateModal = document.querySelector("#donate-modal");
 const donateModalClose = document.querySelector("#donate-modal-close");
 const donateTriggers = Array.from(document.querySelectorAll("[data-donate-trigger]"));
@@ -77,6 +95,7 @@ let cardMenuCardId = null;
 let sequenceDragId = null;
 let editingCardId = null;
 let activeScriptCardId = null;
+let activeCharacterId = null;
 let selectedExportCardIds = new Set();
 let exportSelectionTouched = false;
 let screenplayLineMemory = new Map();
@@ -84,7 +103,7 @@ let screenplayLineMemory = new Map();
 function loadProjects() {
   try {
     const stored = JSON.parse(localStorage.getItem(projectsStorageKey));
-    if (Array.isArray(stored) && stored.length) return stored;
+    if (Array.isArray(stored) && stored.length) return stored.map(ensureProjectCollections);
   } catch {
   }
 
@@ -94,6 +113,7 @@ function loadProjects() {
       id: crypto.randomUUID(),
       title: "First Draft",
       cards: legacyCards,
+      characters: [],
       screenplay: "",
       createdAt: new Date().toISOString(),
     }];
@@ -105,6 +125,12 @@ function loadProjects() {
   return [];
 }
 
+function ensureProjectCollections(project) {
+  project.cards = Array.isArray(project.cards) ? project.cards : [];
+  project.characters = Array.isArray(project.characters) ? project.characters : [];
+  return project;
+}
+
 function loadLegacyCards() {
   try {
     return JSON.parse(localStorage.getItem(legacyStorageKey)) || [];
@@ -114,7 +140,8 @@ function loadLegacyCards() {
 }
 
 function getActiveProject() {
-  return projects.find((project) => project.id === activeProjectId) || null;
+  const project = projects.find((item) => item.id === activeProjectId) || null;
+  return project ? ensureProjectCollections(project) : null;
 }
 
 function saveProjects() {
@@ -140,6 +167,7 @@ function setLayer(layer) {
   closeMobilePanels();
   hideCardMenu();
   closeSceneModal();
+  closeCharactersModal();
   if (layer === "projects") renderProjects();
   if (layer === "screenplay") renderScreenplay();
 }
@@ -149,6 +177,7 @@ function setActiveProject(id, layer = "cards") {
   const project = getActiveProject();
   cards = project?.cards || [];
   activeScriptCardId = cards[0]?.id || null;
+  activeCharacterId = project?.characters?.[0]?.id || null;
   selectedExportCardIds = new Set(cards.map((card) => card.id));
   exportSelectionTouched = false;
   boardView = getDefaultBoardView();
@@ -179,12 +208,13 @@ function renderProjects() {
       <p class="project-meta"></p>
       <div class="project-card-actions">
         <button class="primary-action" type="button" data-open-project="${project.id}">Cards</button>
+        <button class="zoom-button" type="button" data-open-characters="${project.id}">Characters</button>
         <button class="zoom-button" type="button" data-open-script="${project.id}">Script</button>
       </div>
     `;
     item.querySelector("h2").textContent = project.title;
     item.querySelector(".project-meta").textContent =
-      `${project.cards.length} ${project.cards.length === 1 ? "card" : "cards"}`;
+      `${project.cards.length} ${project.cards.length === 1 ? "card" : "cards"} · ${project.characters.length} ${project.characters.length === 1 ? "character" : "characters"}`;
     projectList.append(item);
   });
 }
@@ -198,6 +228,7 @@ function createProject(event) {
     id: crypto.randomUUID(),
     title,
     cards: [],
+    characters: [],
     screenplay: "",
     createdAt: new Date().toISOString(),
   };
@@ -523,6 +554,138 @@ function openSceneModal(id) {
 
 function closeSceneModal() {
   sceneModal.hidden = true;
+}
+
+function openCharactersModal() {
+  const project = getActiveProject();
+  if (!project) {
+    setLayer("projects");
+    return;
+  }
+
+  activeCharacterId = project.characters.some((character) => character.id === activeCharacterId)
+    ? activeCharacterId
+    : project.characters[0]?.id || null;
+  charactersProjectTitle.textContent = `${project.title} characters`;
+  charactersModal.hidden = false;
+  closeCharacterForm();
+  renderCharacters();
+}
+
+function closeCharactersModal() {
+  charactersModal.hidden = true;
+  closeCharacterForm();
+}
+
+function openCharacterForm() {
+  characterForm.hidden = false;
+  requestAnimationFrame(() => characterNameInput.focus());
+}
+
+function closeCharacterForm() {
+  characterForm.hidden = true;
+}
+
+function renderCharacters() {
+  const project = getActiveProject();
+  if (!project) return;
+
+  characterStrip.innerHTML = "";
+  characterDetail.innerHTML = "";
+  characterSubmitButton.textContent = "Create character";
+
+  if (!project.characters.length) {
+    characterStrip.innerHTML = "<p class=\"character-empty\">No characters yet.</p>";
+    characterDetail.innerHTML = "<p class=\"character-empty\">Tap + to create a character. Their brief will appear here after saving.</p>";
+    return;
+  }
+
+  project.characters.forEach((character) => {
+    const shade = character.shade || "GRAY";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `character-thumb shade-${shade.toLowerCase()}`;
+    button.classList.toggle("is-active", character.id === activeCharacterId);
+    button.dataset.characterId = character.id;
+    button.innerHTML = `
+      <strong></strong>
+      <span></span>
+    `;
+    button.querySelector("strong").textContent = character.name;
+    button.querySelector("span").textContent = character.screenTime;
+    characterStrip.append(button);
+  });
+
+  const selected = project.characters.find((character) => character.id === activeCharacterId) || project.characters[0];
+  if (!selected) return;
+  activeCharacterId = selected.id;
+
+  characterDetail.innerHTML = `
+    <div class="character-detail-heading">
+      <div>
+        <p class="eyebrow">Selected character</p>
+        <h3></h3>
+      </div>
+      <div class="character-badges">
+        <span class="character-badge shade-${(selected.shade || "GRAY").toLowerCase()}"></span>
+        <span class="character-badge"></span>
+      </div>
+    </div>
+    <dl>
+      <div>
+        <dt>Biggest desire/goal</dt>
+        <dd></dd>
+      </div>
+      <div>
+        <dt>Biggest fear</dt>
+        <dd></dd>
+      </div>
+      <div>
+        <dt>Lie he/she believes</dt>
+        <dd></dd>
+      </div>
+    </dl>
+  `;
+  characterDetail.querySelector("h3").textContent = selected.name;
+  const badges = characterDetail.querySelectorAll(".character-badge");
+  badges[0].textContent = selected.shade;
+  badges[1].textContent = selected.screenTime;
+  const details = characterDetail.querySelectorAll("dd");
+  details[0].textContent = selected.goal;
+  details[1].textContent = selected.fear;
+  details[2].textContent = selected.lie;
+}
+
+function createCharacter(event) {
+  event.preventDefault();
+  const project = getActiveProject();
+  if (!project) return;
+
+  const name = characterNameInput.value.trim();
+  const goal = characterGoalInput.value.trim();
+  const fear = characterFearInput.value.trim();
+  const lie = characterLieInput.value.trim();
+  if (!name || !goal || !fear || !lie) return;
+
+  const character = {
+    id: crypto.randomUUID(),
+    name,
+    goal,
+    fear,
+    lie,
+    shade: characterShadeInput.value,
+    screenTime: characterScreenTimeInput.value,
+    createdAt: new Date().toISOString(),
+  };
+
+  project.characters.push(character);
+  activeCharacterId = character.id;
+  characterForm.reset();
+  closeCharacterForm();
+  saveProjects();
+  renderCharacters();
+  renderProjects();
+  characterNameInput.focus();
 }
 
 function openDonateModal(event) {
@@ -1008,8 +1171,13 @@ form.addEventListener("submit", addCard);
 projectForm.addEventListener("submit", createProject);
 projectList.addEventListener("click", (event) => {
   const cardsButton = event.target.closest("[data-open-project]");
+  const charactersButton = event.target.closest("[data-open-characters]");
   const scriptButton = event.target.closest("[data-open-script]");
   if (cardsButton) setActiveProject(cardsButton.dataset.openProject, "cards");
+  if (charactersButton) {
+    setActiveProject(charactersButton.dataset.openCharacters, "cards");
+    openCharactersModal();
+  }
   if (scriptButton) setActiveProject(scriptButton.dataset.openScript, "screenplay");
 });
 swatches.forEach((swatch) => swatch.addEventListener("change", updateSwatches));
@@ -1026,11 +1194,23 @@ zoomReset.addEventListener("click", () => {
   applyBoardView();
 });
 showProjects.addEventListener("click", () => setLayer("projects"));
+showCharacters.addEventListener("click", (event) => {
+  event.preventDefault();
+  openCharactersModal();
+});
 showScreenplay.addEventListener("click", () => setLayer("screenplay"));
 mobileProjectsLink.addEventListener("click", () => setLayer("projects"));
+mobileCharactersLink.addEventListener("click", () => {
+  closeMobilePanels();
+  openCharactersModal();
+});
 mobileScriptLink.addEventListener("click", () => setLayer("screenplay"));
 scriptToProjects.addEventListener("click", () => setLayer("projects"));
 scriptToCards.addEventListener("click", () => setLayer("cards"));
+scriptToCharacters.addEventListener("click", (event) => {
+  event.preventDefault();
+  openCharactersModal();
+});
 buildScript.addEventListener("click", seedActiveCardScreenplay);
 exportScript.addEventListener("click", exportCurrentProject);
 screenplayInput.addEventListener("input", saveScreenplay);
@@ -1084,6 +1264,19 @@ cardMenuDelete.addEventListener("click", () => deleteCard(cardMenuCardId));
 sceneModalClose.addEventListener("click", closeSceneModal);
 sceneModal.addEventListener("click", (event) => {
   if (event.target === sceneModal) closeSceneModal();
+});
+characterForm.addEventListener("submit", createCharacter);
+characterAddButton.addEventListener("click", openCharacterForm);
+characterFormClose.addEventListener("click", closeCharacterForm);
+characterStrip.addEventListener("click", (event) => {
+  const thumb = event.target.closest("[data-character-id]");
+  if (!thumb) return;
+  activeCharacterId = thumb.dataset.characterId;
+  renderCharacters();
+});
+charactersModalClose.addEventListener("click", closeCharactersModal);
+charactersModal.addEventListener("click", (event) => {
+  if (event.target === charactersModal) closeCharactersModal();
 });
 donateTriggers.forEach((trigger) => trigger.addEventListener("click", openDonateModal));
 donateModalClose.addEventListener("click", closeDonateModal);

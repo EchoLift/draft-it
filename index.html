@@ -98,8 +98,10 @@
         <section class="sequence" aria-label="Scene order">
           <div class="section-heading">
             <h2>Order</h2>
+            <br/>
             <div class="section-actions">
               <button id="mobile-projects-link" class="zoom-button mobile-nav-link" type="button">Projects</button>
+              <button id="mobile-characters-link" class="zoom-button mobile-nav-link" type="button">Characters</button>
               <button id="mobile-script-link" class="zoom-button mobile-nav-link" type="button">Script</button>
               <button id="clear-board" class="icon-button" type="button" title="Delete all cards" aria-label="Delete all cards">🗑</button>
               <button class="mobile-close" type="button" title="Close" aria-label="Close">×</button>
@@ -117,6 +119,7 @@
           </div>
           <div class="board-stats">
             <button id="show-projects" class="zoom-button" type="button" title="Projects" aria-label="Projects">Projects</button>
+            <button id="show-characters" class="zoom-button" type="button" title="Characters" aria-label="Characters">Characters</button>
             <button id="show-screenplay" class="zoom-button" type="button" title="Screenplay" aria-label="Screenplay">Script</button>
             <button id="zoom-out" class="zoom-button" type="button" title="Zoom out" aria-label="Zoom out">−</button>
             <span id="zoom-level">100%</span>
@@ -151,6 +154,7 @@
           <div class="screenplay-actions">
             <button id="script-to-projects" class="zoom-button" type="button">Projects</button>
             <button id="script-to-cards" class="zoom-button" type="button">Cards</button>
+            <button id="script-to-characters" class="zoom-button" type="button">Characters</button>
             <label class="select-all-export">
               <input id="select-all-script-cards" type="checkbox" />
               <span>Select all</span>
@@ -197,6 +201,64 @@
           <span id="scene-modal-emotion" class="emotion-label"></span>
           <h2 id="scene-modal-title"></h2>
           <p id="scene-modal-text"></p>
+        </article>
+      </div>
+
+      <div id="characters-modal" class="characters-modal" hidden>
+        <article class="characters-card">
+          <button id="characters-modal-close" class="mobile-close" type="button" title="Close" aria-label="Close">×</button>
+          <button id="character-add-button" class="character-add-button" type="button" title="Add character" aria-label="Add character">+</button>
+          <header class="characters-header">
+            <div>
+              <p class="eyebrow">Characters</p>
+              <h2 id="characters-project-title">Project characters</h2>
+            </div>
+          </header>
+          <form id="character-form" class="character-form" hidden>
+            <div class="character-form-heading">
+              <h3>New character</h3>
+              <button id="character-form-close" class="mobile-close" type="button" title="Close form" aria-label="Close form">×</button>
+            </div>
+            <label>
+              <span>Character name</span>
+              <input id="character-name-input" type="text" maxlength="60" placeholder="Character name" required />
+            </label>
+            <label>
+              <span>Biggest desire/goal</span>
+              <textarea id="character-goal-input" rows="3" maxlength="280" placeholder="What are they chasing?" required></textarea>
+            </label>
+            <label>
+              <span>Biggest fear</span>
+              <textarea id="character-fear-input" rows="3" maxlength="280" placeholder="What scares them most?" required></textarea>
+            </label>
+            <label>
+              <span>Lie he/she believes</span>
+              <textarea id="character-lie-input" rows="3" maxlength="280" placeholder="The false belief driving them" required></textarea>
+            </label>
+            <div class="character-select-row">
+              <label>
+                <span>Shade</span>
+                <select id="character-shade-input" required>
+                  <option value="RED">RED</option>
+                  <option value="GRAY">GRAY</option>
+                  <option value="BLACK">BLACK</option>
+                </select>
+              </label>
+              <label>
+                <span>Screen time</span>
+                <select id="character-screen-time-input" required>
+                  <option value="LONG">LONG</option>
+                  <option value="MEDIUM">MEDIUM</option>
+                  <option value="CAMEO">CAMEO</option>
+                </select>
+              </label>
+            </div>
+            <button class="primary-action" type="submit">Create character</button>
+          </form>
+          <section class="character-browser" aria-label="Character browser">
+            <div id="character-strip" class="character-strip"></div>
+            <div id="character-detail" class="character-detail"></div>
+          </section>
         </article>
       </div>
 
