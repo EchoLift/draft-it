@@ -170,6 +170,60 @@ li {
   padding-left: 22px;
 }
 
+.tip {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(36, 92, 81, 0.28);
+  border-radius: 8px;
+  background: #e7f2ed;
+  padding: 28px;
+  box-shadow: 0 18px 42px rgba(31, 37, 43, 0.08);
+}
+
+.tip::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 8px;
+  background: var(--accent);
+}
+
+.tip-label {
+  width: fit-content;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tip h2 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  line-height: 1.04;
+}
+
+.tip p:last-child {
+  margin-bottom: 0;
+}
+
+.tip-path {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.tip-path article {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.tip-path strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
 .grid,
 .steps {
   display: grid;
@@ -314,6 +368,7 @@ article p {
   }
 
   .grid,
+  .tip-path,
   .steps,
   .emotions {
     grid-template-columns: 1fr;

@@ -528,7 +528,7 @@ select:focus {
   display: grid;
   grid-template-columns: 1fr;
   align-items: start;
-  gap: 0;
+  gap: 8px;
   justify-content: stretch;
 }
 
@@ -1500,7 +1500,7 @@ select:focus {
     display: grid;
     grid-template-columns: 1fr;
     align-items: start;
-    gap: 0;
+    gap: 8px;
   }
 
   .section-heading h2 {
