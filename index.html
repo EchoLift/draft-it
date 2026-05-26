@@ -29,6 +29,18 @@
             <input id="project-author-input" type="text" maxlength="60" placeholder="Author name" required />
             <button class="primary-action" type="submit">Create project</button>
           </form>
+          <div class="backup-tools" aria-label="Draft It backups">
+            <button id="manual-backup" class="zoom-button" type="button">Export .draftit</button>
+            <label class="import-backup zoom-button">
+              <span>Import .draftit</span>
+              <input id="import-backup-input" type="file" accept=".draftit,application/json" />
+            </label>
+            <label class="auto-backup-toggle">
+              <input id="auto-backup-toggle" type="checkbox" />
+              <span>Auto backup every 5 min</span>
+            </label>
+            <span id="backup-status" class="backup-status">Backups are off</span>
+          </div>
         </div>
         <div id="project-list" class="project-list"></div>
       </section>

@@ -4,6 +4,10 @@ const projectForm = document.querySelector("#project-form");
 const projectTitleInput = document.querySelector("#project-title-input");
 const projectAuthorInput = document.querySelector("#project-author-input");
 const projectList = document.querySelector("#project-list");
+const manualBackup = document.querySelector("#manual-backup");
+const importBackupInput = document.querySelector("#import-backup-input");
+const autoBackupToggle = document.querySelector("#auto-backup-toggle");
+const backupStatus = document.querySelector("#backup-status");
 const activeProjectTitle = document.querySelector("#active-project-title");
 const screenplayProjectTitle = document.querySelector("#screenplay-project-title");
 const showProjects = document.querySelector("#show-projects");
@@ -77,6 +81,9 @@ const actionLabel = form.querySelector(".action-label");
 const legacyStorageKey = "draft-it-scene-cards";
 const projectsStorageKey = "draft-it-projects";
 const activeProjectStorageKey = "draft-it-active-project";
+const autoBackupStorageKey = "draft-it-auto-backup";
+const backupIntervalMs = 5 * 60 * 1000;
+const backupTimezone = "Asia/Kolkata";
 const minZoom = 0.03;
 const maxZoom = 4;
 const emotionByColor = {
@@ -106,6 +113,7 @@ let activeCharacterId = null;
 let selectedExportCardIds = new Set();
 let exportSelectionTouched = false;
 let screenplayLineMemory = new Map();
+let autoBackupTimer = null;
 
 function loadProjects() {
   try {
@@ -159,6 +167,136 @@ function getActiveProject() {
 function saveProjects() {
   localStorage.setItem(projectsStorageKey, JSON.stringify(projects));
   if (activeProjectId) localStorage.setItem(activeProjectStorageKey, activeProjectId);
+}
+
+function getDraftItBackupPayload() {
+  projects.forEach(ensureProjectCollections);
+  const exportedAt = new Date();
+  return {
+    app: "Draft It",
+    format: "draftit",
+    version: 1,
+    exportedAt: exportedAt.toISOString(),
+    exportedAtIst: formatIstTimestamp(exportedAt),
+    timezone: backupTimezone,
+    activeProjectId,
+    projects,
+  };
+}
+
+function formatIstTimestamp(date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: backupTimezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date).reduce((values, part) => {
+    values[part.type] = part.value;
+    return values;
+  }, {});
+
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second} IST`;
+}
+
+function getBackupFilename() {
+  const stamp = formatIstTimestamp(new Date())
+    .replace(" IST", "")
+    .replaceAll(":", "-")
+    .replace(" ", "_");
+  return `draft-it-backup-${stamp}-IST.draftit`;
+}
+
+function downloadDraftItBackup(reason = "manual") {
+  const blob = new Blob([JSON.stringify(getDraftItBackupPayload(), null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = getBackupFilename();
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  backupStatus.textContent = reason === "auto"
+    ? `Auto backup downloaded ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+    : "Backup downloaded";
+}
+
+function normalizeImportedProjects(importedProjects) {
+  if (!Array.isArray(importedProjects)) return [];
+  return importedProjects
+    .filter((project) => project && typeof project === "object")
+    .map((project) => ensureProjectCollections({
+      id: project.id || crypto.randomUUID(),
+      title: project.title || "Untitled Project",
+      author: project.author || "",
+      cards: Array.isArray(project.cards) ? project.cards : [],
+      characters: Array.isArray(project.characters) ? project.characters : [],
+      screenplay: project.screenplay || "",
+      createdAt: project.createdAt || new Date().toISOString(),
+    }));
+}
+
+function restoreDraftItBackup(payload) {
+  const importedProjects = normalizeImportedProjects(payload?.projects || payload);
+  if (!importedProjects.length) {
+    alert("This .draftit file does not contain any projects.");
+    return;
+  }
+
+  const shouldRestore = confirm(`Import ${importedProjects.length} project${importedProjects.length === 1 ? "" : "s"} from this .draftit file? This will replace the projects currently in this browser.`);
+  if (!shouldRestore) return;
+
+  projects = importedProjects;
+  activeProjectId = importedProjects.some((project) => project.id === payload?.activeProjectId)
+    ? payload.activeProjectId
+    : importedProjects[0].id;
+  cards = getActiveProject()?.cards || [];
+  activeScriptCardId = cards[0]?.id || null;
+  selectedExportCardIds = new Set(cards.map((card) => card.id));
+  exportSelectionTouched = false;
+  saveProjects();
+  renderProjects();
+  render();
+  setLayer("projects");
+  backupStatus.textContent = "Backup imported";
+}
+
+function importDraftItBackup(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      restoreDraftItBackup(JSON.parse(reader.result));
+    } catch {
+      alert("Could not read this .draftit file. Please choose a valid Draft It backup.");
+    } finally {
+      importBackupInput.value = "";
+    }
+  };
+  reader.readAsText(file);
+}
+
+function setAutoBackup(enabled) {
+  localStorage.setItem(autoBackupStorageKey, enabled ? "true" : "false");
+  autoBackupToggle.checked = enabled;
+  clearInterval(autoBackupTimer);
+  autoBackupTimer = null;
+
+  if (!enabled) {
+    backupStatus.textContent = "Backups are off";
+    return;
+  }
+
+  backupStatus.textContent = "Auto backup is on";
+  autoBackupTimer = setInterval(() => downloadDraftItBackup("auto"), backupIntervalMs);
 }
 
 function saveCards() {
@@ -1370,6 +1508,9 @@ function clearAllCards() {
 
 form.addEventListener("submit", addCard);
 projectForm.addEventListener("submit", createProject);
+manualBackup.addEventListener("click", () => downloadDraftItBackup("manual"));
+importBackupInput.addEventListener("change", importDraftItBackup);
+autoBackupToggle.addEventListener("change", () => setAutoBackup(autoBackupToggle.checked));
 projectList.addEventListener("click", (event) => {
   const cardsButton = event.target.closest("[data-open-project]");
   const charactersButton = event.target.closest("[data-open-characters]");
@@ -1510,6 +1651,7 @@ document.addEventListener(
 );
 
 applyBoardView();
+setAutoBackup(localStorage.getItem(autoBackupStorageKey) === "true");
 renderProjects();
 if (activeProjectId && getActiveProject()) {
   render();

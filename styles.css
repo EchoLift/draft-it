@@ -83,6 +83,45 @@ body[data-layer="cards"] .screenplay-layer {
   gap: 10px;
 }
 
+.backup-tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.import-backup {
+  position: relative;
+  overflow: hidden;
+}
+
+.import-backup input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.auto-backup-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  border: 1px solid #cfd5dd;
+  border-radius: 999px;
+  background: #fff;
+  padding: 0 11px;
+  color: #46505a;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.backup-status {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
 .project-header-links {
   margin-left: auto;
   display: flex;
@@ -1643,6 +1682,29 @@ select:focus {
   .project-form {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  .backup-tools {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .backup-tools .zoom-button,
+  .auto-backup-toggle,
+  .backup-status {
+    min-width: 0;
+    justify-content: center;
+    font-size: 0.72rem;
+  }
+
+  .auto-backup-toggle,
+  .backup-status {
+    grid-column: 1 / -1;
+  }
+
+  .backup-status {
+    text-align: center;
   }
 
   .screenplay-toolbar h1 {
