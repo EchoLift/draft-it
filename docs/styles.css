@@ -287,6 +287,82 @@ article p {
   background: var(--color);
 }
 
+.developer-section {
+  border-radius: 8px;
+  background: #101217;
+  color: #fff;
+  padding: 24px;
+}
+
+.developer-section h2 {
+  color: #fff;
+}
+
+.developer-card {
+  display: grid;
+  gap: 12px;
+}
+
+.developer-link {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 76px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 14px 18px;
+}
+
+.developer-link.is-primary {
+  background: #fff;
+  color: #111;
+}
+
+.developer-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.developer-link strong,
+.developer-link small {
+  display: block;
+}
+
+.developer-link strong {
+  color: inherit;
+  font-size: 1rem;
+}
+
+.developer-link small {
+  overflow-wrap: anywhere;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.developer-link.is-primary small {
+  color: rgba(17, 17, 17, 0.58);
+}
+
+.developer-link b {
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+.developer-location {
+  grid-template-columns: 44px minmax(0, 1fr);
+  color: rgba(255, 255, 255, 0.72);
+}
+
 .donate-modal {
   position: fixed;
   inset: 0;
