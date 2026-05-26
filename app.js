@@ -143,6 +143,8 @@ let autoBackupTimer = null;
 let activeTreeDrag = null;
 let editingProjectId = null;
 let characterStripDrag = null;
+let activeTouchZoom = null;
+let boardLinesFrame = null;
 
 function loadProjects() {
   try {
@@ -1420,6 +1422,7 @@ function deleteTreeNode(id) {
 }
 
 function beginTreeNodeDrag(event) {
+  if (activeTouchZoom) return;
   const node = event.target.closest(".tree-node");
   if (!node) return;
   if (event.target.closest("[data-tree-action]")) return;
@@ -1547,12 +1550,12 @@ function clamp(value, min, max) {
 }
 
 function applyBoardView() {
-  boardSurface.style.transform = `translate(${boardView.x}px, ${boardView.y}px) scale(${boardView.scale})`;
+  boardSurface.style.transform = `translate3d(${boardView.x}px, ${boardView.y}px, 0) scale(${boardView.scale})`;
   zoomLevel.textContent = `${Math.round(boardView.scale * 100)}%`;
 }
 
 function applyTreeView() {
-  treeSurface.style.transform = `translate(${treeView.x}px, ${treeView.y}px) scale(${treeView.scale})`;
+  treeSurface.style.transform = `translate3d(${treeView.x}px, ${treeView.y}px, 0) scale(${treeView.scale})`;
   treeZoomLevel.textContent = `${Math.round(treeView.scale * 100)}%`;
 }
 
@@ -1600,6 +1603,83 @@ function zoomTree(nextScale, originClientX = treeBoard.clientWidth / 2, originCl
   treeView.x = originX - worldX * scale;
   treeView.y = originY - worldY * scale;
   applyTreeView();
+}
+
+function getTouchZoomMetrics(event) {
+  if (event.touches.length < 2) return null;
+  const [first, second] = event.touches;
+  const centerX = (first.clientX + second.clientX) / 2;
+  const centerY = (first.clientY + second.clientY) / 2;
+  const distance = Math.hypot(second.clientX - first.clientX, second.clientY - first.clientY);
+  return { centerX, centerY, distance };
+}
+
+function startTouchZoom(kind, event) {
+  const metrics = getTouchZoomMetrics(event);
+  if (!metrics) return;
+  if (kind === "board" && (activeDrag || pendingCardDrag || pointerStart?.targetCardId)) return;
+  if (kind === "tree" && activeTreeDrag) return;
+  event.preventDefault();
+  cancelLongPress();
+  activePan = null;
+  pendingCardDrag = null;
+  pointerStart = null;
+  if (activeTreeDrag?.element) activeTreeDrag.element.classList.remove("is-dragging");
+  activeTreeDrag = null;
+
+  const isTree = kind === "tree";
+  const surface = isTree ? treeBoard : board;
+  const view = isTree ? treeView : boardView;
+  const rect = surface.getBoundingClientRect();
+  const originX = metrics.centerX - rect.left;
+  const originY = metrics.centerY - rect.top;
+
+  activeTouchZoom = {
+    kind,
+    startDistance: metrics.distance,
+    startScale: view.scale,
+    worldX: (originX - view.x) / view.scale,
+    worldY: (originY - view.y) / view.scale,
+  };
+}
+
+function moveTouchZoom(event) {
+  if (!activeTouchZoom) return;
+  const metrics = getTouchZoomMetrics(event);
+  if (!metrics) return;
+  event.preventDefault();
+
+  const isTree = activeTouchZoom.kind === "tree";
+  const surface = isTree ? treeBoard : board;
+  const view = isTree ? treeView : boardView;
+  const rect = surface.getBoundingClientRect();
+  const originX = metrics.centerX - rect.left;
+  const originY = metrics.centerY - rect.top;
+  const scale = clamp(
+    activeTouchZoom.startScale * (metrics.distance / activeTouchZoom.startDistance),
+    minZoom,
+    maxZoom,
+  );
+
+  view.scale = scale;
+  view.x = originX - activeTouchZoom.worldX * scale;
+  view.y = originY - activeTouchZoom.worldY * scale;
+  if (isTree) applyTreeView();
+  else applyBoardView();
+}
+
+function endTouchZoom(event) {
+  if (!activeTouchZoom || event.touches.length >= 2) return;
+  activeTouchZoom = null;
+}
+
+function handleBoardTouchStart(event) {
+  if (event.target.closest(".scene-card")) return;
+  if (event.touches.length === 2) startTouchZoom("board", event);
+}
+
+function handleTreeTouchStart(event) {
+  if (event.touches.length === 2) startTouchZoom("tree", event);
 }
 
 function cardTemplate(card, index) {
@@ -1725,6 +1805,10 @@ function appendBoardLine({ fromCard, toCard, type, id }) {
 }
 
 function renderBoardLines() {
+  if (boardLinesFrame) {
+    cancelAnimationFrame(boardLinesFrame);
+    boardLinesFrame = null;
+  }
   const project = getActiveProject();
   boardLines.innerHTML = `
     <defs>
@@ -1748,6 +1832,14 @@ function renderBoardLines() {
     const toCard = cards.find((card) => card.id === link.toCardId);
     if (!fromCard || !toCard) return;
     appendBoardLine({ fromCard, toCard, type: "custom", id: link.id });
+  });
+}
+
+function scheduleBoardLinesRender() {
+  if (boardLinesFrame) return;
+  boardLinesFrame = requestAnimationFrame(() => {
+    boardLinesFrame = null;
+    renderBoardLines();
   });
 }
 
@@ -1914,7 +2006,7 @@ function moveCard(event) {
   card.y = pointer.y - activeDrag.offsetY;
   activeDrag.element.style.left = `${card.x}px`;
   activeDrag.element.style.top = `${card.y}px`;
-  renderBoardLines();
+  scheduleBoardLinesRender();
   saveState.textContent = "Moving...";
 }
 
@@ -1926,6 +2018,7 @@ function endCardDrag() {
 }
 
 function beginBoardPointer(event) {
+  if (activeTouchZoom) return;
   startLongPress(event);
   const tappedCard = event.target.closest(".scene-card");
   const tappedButton = event.target.closest("button");
@@ -2227,6 +2320,10 @@ board.addEventListener("pointermove", moveBoardPointer);
 board.addEventListener("pointerup", endBoardPointer);
 board.addEventListener("pointercancel", endBoardPointer);
 board.addEventListener("wheel", handleBoardWheel, { passive: false });
+board.addEventListener("touchstart", handleBoardTouchStart, { passive: false });
+board.addEventListener("touchmove", moveTouchZoom, { passive: false });
+board.addEventListener("touchend", endTouchZoom, { passive: false });
+board.addEventListener("touchcancel", endTouchZoom, { passive: false });
 board.addEventListener("click", handleCardAction);
 addCardLink.addEventListener("click", addCustomCardLink);
 zoomOut.addEventListener("click", () => zoomBoard(boardView.scale / 1.2));
@@ -2265,6 +2362,10 @@ treeBoard.addEventListener("pointermove", moveTreeNode);
 treeBoard.addEventListener("pointerup", endTreeNodeDrag);
 treeBoard.addEventListener("pointercancel", endTreeNodeDrag);
 treeBoard.addEventListener("wheel", handleTreeWheel, { passive: false });
+treeBoard.addEventListener("touchstart", handleTreeTouchStart, { passive: false });
+treeBoard.addEventListener("touchmove", moveTouchZoom, { passive: false });
+treeBoard.addEventListener("touchend", endTouchZoom, { passive: false });
+treeBoard.addEventListener("touchcancel", endTouchZoom, { passive: false });
 treeLines.addEventListener("click", editTreeRelation);
 buildScript.addEventListener("click", seedActiveCardScreenplay);
 exportScript.addEventListener("click", openExportModal);

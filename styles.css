@@ -371,6 +371,7 @@ body[data-layer="tree"] .screenplay-layer {
   background-size: 28px 28px;
   user-select: none;
   -webkit-user-select: none;
+  touch-action: none;
 }
 
 .tree-surface {
@@ -1015,6 +1016,7 @@ select:focus {
   height: 12000px;
   transform-origin: 0 0;
   will-change: transform;
+  backface-visibility: hidden;
 }
 
 .board-lines {
@@ -1056,18 +1058,6 @@ select:focus {
 .board-link-remove text {
   fill: #9f2b2b;
   font: 900 16px Inter, sans-serif;
-  pointer-events: none;
-}
-
-.board-surface::before {
-  content: "";
-  position: absolute;
-  inset: -6000px;
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(36, 45, 54, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(36, 45, 54, 0.05) 1px, transparent 1px);
-  background-size: 28px 28px;
   pointer-events: none;
 }
 
@@ -1139,6 +1129,7 @@ select:focus {
   user-select: none;
   z-index: 2;
   overflow: hidden;
+  backface-visibility: hidden;
 }
 
 .scene-card:active,
