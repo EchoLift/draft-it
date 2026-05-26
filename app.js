@@ -13,12 +13,28 @@ const screenplayProjectTitle = document.querySelector("#screenplay-project-title
 const showProjects = document.querySelector("#show-projects");
 const showCharacters = document.querySelector("#show-characters");
 const showScreenplay = document.querySelector("#show-screenplay");
-const mobileProjectsLink = document.querySelector("#mobile-projects-link");
-const mobileCharactersLink = document.querySelector("#mobile-characters-link");
-const mobileScriptLink = document.querySelector("#mobile-script-link");
 const scriptToProjects = document.querySelector("#script-to-projects");
 const scriptToCards = document.querySelector("#script-to-cards");
 const scriptToCharacters = document.querySelector("#script-to-characters");
+const treeProjectTitle = document.querySelector("#tree-project-title");
+const treeToProjects = document.querySelector("#tree-to-projects");
+const treeToCards = document.querySelector("#tree-to-cards");
+const treeToScript = document.querySelector("#tree-to-script");
+const treeOpenCharacters = document.querySelector("#tree-open-characters");
+const treeCharacterSelect = document.querySelector("#tree-character-select");
+const treeAddNode = document.querySelector("#tree-add-node");
+const treeRelationFrom = document.querySelector("#tree-relation-from");
+const treeRelationTo = document.querySelector("#tree-relation-to");
+const treeRelationInput = document.querySelector("#tree-relation-input");
+const treeAddRelation = document.querySelector("#tree-add-relation");
+const treeBoard = document.querySelector("#tree-board");
+const treeSurface = document.querySelector("#tree-surface");
+const treeLines = document.querySelector("#tree-lines");
+const treeEmpty = document.querySelector("#tree-empty");
+const treeZoomOut = document.querySelector("#tree-zoom-out");
+const treeZoomIn = document.querySelector("#tree-zoom-in");
+const treeZoomReset = document.querySelector("#tree-zoom-reset");
+const treeZoomLevel = document.querySelector("#tree-zoom-level");
 const buildScript = document.querySelector("#build-script");
 const exportScript = document.querySelector("#export-script");
 const screenplayInput = document.querySelector("#screenplay-input");
@@ -53,6 +69,7 @@ const sceneModalText = document.querySelector("#scene-modal-text");
 const charactersModal = document.querySelector("#characters-modal");
 const charactersModalClose = document.querySelector("#characters-modal-close");
 const charactersProjectTitle = document.querySelector("#characters-project-title");
+const characterTreeButton = document.querySelector("#character-tree-button");
 const characterForm = document.querySelector("#character-form");
 const characterAddButton = document.querySelector("#character-add-button");
 const characterFormClose = document.querySelector("#character-form-close");
@@ -60,6 +77,7 @@ const characterNameInput = document.querySelector("#character-name-input");
 const characterGoalInput = document.querySelector("#character-goal-input");
 const characterFearInput = document.querySelector("#character-fear-input");
 const characterLieInput = document.querySelector("#character-lie-input");
+const characterGenderInput = document.querySelector("#character-gender-input");
 const characterShadeInput = document.querySelector("#character-shade-input");
 const characterScreenTimeInput = document.querySelector("#character-screen-time-input");
 const characterStrip = document.querySelector("#character-strip");
@@ -81,6 +99,7 @@ const actionLabel = form.querySelector(".action-label");
 const legacyStorageKey = "draft-it-scene-cards";
 const projectsStorageKey = "draft-it-projects";
 const activeProjectStorageKey = "draft-it-active-project";
+const activeLayerStorageKey = "draft-it-active-layer";
 const autoBackupStorageKey = "draft-it-auto-backup";
 const backupIntervalMs = 5 * 60 * 1000;
 const backupTimezone = "Asia/Kolkata";
@@ -98,6 +117,7 @@ let projects = loadProjects();
 let activeProjectId = localStorage.getItem(activeProjectStorageKey) || projects[0]?.id || null;
 let cards = getActiveProject()?.cards || [];
 let boardView = getDefaultBoardView();
+let treeView = getDefaultBoardView();
 let activeDrag = null;
 let pendingCardDrag = null;
 let activePan = null;
@@ -114,6 +134,7 @@ let selectedExportCardIds = new Set();
 let exportSelectionTouched = false;
 let screenplayLineMemory = new Map();
 let autoBackupTimer = null;
+let activeTreeDrag = null;
 
 function loadProjects() {
   try {
@@ -145,8 +166,14 @@ function ensureProjectCollections(project) {
   project.author = project.author || "";
   project.cards = Array.isArray(project.cards) ? project.cards : [];
   project.characters = Array.isArray(project.characters) ? project.characters : [];
+  project.characterTree = project.characterTree && typeof project.characterTree === "object"
+    ? project.characterTree
+    : { nodes: [], links: [] };
+  project.characterTree.nodes = Array.isArray(project.characterTree.nodes) ? project.characterTree.nodes : [];
+  project.characterTree.links = Array.isArray(project.characterTree.links) ? project.characterTree.links : [];
   project.characters.forEach((character) => {
     if (character.shade === "RED") character.shade = "WHITE";
+    character.gender = character.gender || "OTHER";
   });
   return project;
 }
@@ -237,6 +264,9 @@ function normalizeImportedProjects(importedProjects) {
       author: project.author || "",
       cards: Array.isArray(project.cards) ? project.cards : [],
       characters: Array.isArray(project.characters) ? project.characters : [],
+      characterTree: project.characterTree && typeof project.characterTree === "object"
+        ? project.characterTree
+        : { nodes: [], links: [] },
       screenplay: project.screenplay || "",
       createdAt: project.createdAt || new Date().toISOString(),
     }));
@@ -313,14 +343,18 @@ function setEditingMode(cardId = null) {
 }
 
 function setLayer(layer) {
-  document.body.dataset.layer = layer;
+  const projectOnlyLayers = new Set(["cards", "screenplay", "tree"]);
+  const nextLayer = projectOnlyLayers.has(layer) && !getActiveProject() ? "projects" : layer;
+  localStorage.setItem(activeLayerStorageKey, nextLayer);
+  document.body.dataset.layer = nextLayer;
   closeMobilePanels();
   hideCardMenu();
   closeSceneModal();
   closeCharactersModal();
   closeExportModal();
-  if (layer === "projects") renderProjects();
-  if (layer === "screenplay") renderScreenplay();
+  if (nextLayer === "projects") renderProjects();
+  if (nextLayer === "screenplay") renderScreenplay();
+  if (nextLayer === "tree") renderCharacterTree();
 }
 
 function setActiveProject(id, layer = "cards") {
@@ -382,6 +416,7 @@ function createProject(event) {
     author,
     cards: [],
     characters: [],
+    characterTree: { nodes: [], links: [] },
     screenplay: "",
     createdAt: new Date().toISOString(),
   };
@@ -566,7 +601,7 @@ function renderExportCharacterOptions(project) {
       </span>
     `;
     label.querySelector("strong").textContent = character.name;
-    label.querySelector("small").textContent = `${character.shade || "GRAY"} · ${character.screenTime || "MEDIUM"}`;
+    label.querySelector("small").textContent = `${character.gender || "OTHER"} · ${character.shade || "GRAY"} · ${character.screenTime || "MEDIUM"}`;
     exportCharacterList.append(label);
   });
 }
@@ -614,7 +649,7 @@ function exportCurrentProject(characterIds = []) {
           <article class="print-character">
             <header>
               <h2>${escapeHtml(character.name)}</h2>
-              <p>${escapeHtml(character.shade || "GRAY")} · ${escapeHtml(character.screenTime || "MEDIUM")}</p>
+              <p>${escapeHtml(character.gender || "OTHER")} · ${escapeHtml(character.shade || "GRAY")} · ${escapeHtml(character.screenTime || "MEDIUM")}</p>
             </header>
             <dl>
               <dt>Biggest desire/goal</dt>
@@ -951,7 +986,7 @@ function renderCharacters() {
       <span></span>
     `;
     button.querySelector("strong").textContent = character.name;
-    button.querySelector("span").textContent = character.screenTime;
+    button.querySelector("span").textContent = `${character.gender || "OTHER"} · ${character.screenTime || "MEDIUM"}`;
     characterStrip.append(button);
   });
 
@@ -967,6 +1002,7 @@ function renderCharacters() {
       </div>
       <div class="character-badges">
         <span class="character-badge shade-${(selected.shade || "GRAY").toLowerCase()}"></span>
+        <span class="character-badge"></span>
         <span class="character-badge"></span>
       </div>
     </div>
@@ -987,12 +1023,285 @@ function renderCharacters() {
   `;
   characterDetail.querySelector("h3").textContent = selected.name;
   const badges = characterDetail.querySelectorAll(".character-badge");
-  badges[0].textContent = selected.shade;
-  badges[1].textContent = selected.screenTime;
+  badges[0].textContent = selected.shade || "GRAY";
+  badges[1].textContent = selected.gender || "OTHER";
+  badges[2].textContent = selected.screenTime || "MEDIUM";
   const details = characterDetail.querySelectorAll("dd");
   details[0].textContent = selected.goal;
   details[1].textContent = selected.fear;
   details[2].textContent = selected.lie;
+}
+
+function getCharacterById(id) {
+  return getActiveProject()?.characters.find((character) => character.id === id) || null;
+}
+
+function getTreeNodeLabel(node, index = 0, nodes = getActiveProject()?.characterTree.nodes || []) {
+  const character = getCharacterById(node.characterId);
+  if (!character) return `Node ${index + 1}`;
+  const sameCharacterNodes = nodes.filter((item) => item.characterId === node.characterId);
+  if (sameCharacterNodes.length < 2) return character.name;
+  const instance = sameCharacterNodes.findIndex((item) => item.id === node.id) + 1;
+  return `${character.name} node ${instance}`;
+}
+
+function openCharacterTree() {
+  const project = getActiveProject();
+  if (!project) {
+    setLayer("projects");
+    return;
+  }
+  closeCharactersModal();
+  setLayer("tree");
+}
+
+function renderCharacterTree() {
+  const project = getActiveProject();
+  if (!project) {
+    setLayer("projects");
+    return;
+  }
+
+  treeProjectTitle.textContent = `${project.title} relationships`;
+  treeSurface.querySelectorAll(".tree-node").forEach((node) => node.remove());
+  treeLines.innerHTML = "";
+  applyTreeView();
+  renderTreeControls(project);
+
+  project.characterTree.nodes.forEach((node, index) => {
+    const character = project.characters.find((item) => item.id === node.characterId);
+    const element = document.createElement("div");
+    element.setAttribute("role", "group");
+    element.tabIndex = 0;
+    element.className = `tree-node shade-${(character?.shade || "GRAY").toLowerCase()}`;
+    element.dataset.treeNodeId = node.id;
+    element.style.left = `${node.x}px`;
+    element.style.top = `${node.y}px`;
+    element.innerHTML = `
+      <span class="tree-node-copy">
+        <strong></strong>
+        <span></span>
+      </span>
+      <span class="tree-node-actions">
+        <button data-tree-action="remove" type="button" title="Remove this node only" aria-label="Remove this node only">-</button>
+      </span>
+    `;
+    element.querySelector(".tree-node-copy strong").textContent = character?.name || `Node ${index + 1}`;
+    element.querySelector(".tree-node-copy > span").textContent = character
+      ? `${character.gender || "OTHER"} · ${character.shade || "GRAY"} · ${character.screenTime || "MEDIUM"}`
+      : "Missing character";
+    treeSurface.append(element);
+  });
+
+  renderTreeLines(project);
+  treeEmpty.hidden = project.characterTree.nodes.length > 0;
+}
+
+function renderTreeControls(project) {
+  treeCharacterSelect.innerHTML = "";
+  project.characters.forEach((character) => {
+    const option = document.createElement("option");
+    option.value = character.id;
+    option.textContent = character.name;
+    treeCharacterSelect.append(option);
+  });
+
+  [treeRelationFrom, treeRelationTo].forEach((select) => {
+    select.innerHTML = "";
+    project.characterTree.nodes.forEach((node, index) => {
+      const option = document.createElement("option");
+      option.value = node.id;
+      option.textContent = getTreeNodeLabel(node, index, project.characterTree.nodes);
+      select.append(option);
+    });
+  });
+
+  treeAddNode.disabled = project.characters.length === 0;
+  treeAddRelation.disabled = project.characterTree.nodes.length < 2;
+}
+
+function renderTreeLines(project) {
+  treeLines.setAttribute("width", treeSurface.offsetWidth || 4000);
+  treeLines.setAttribute("height", treeSurface.offsetHeight || 3000);
+  treeLines.innerHTML = `
+    <defs>
+      <marker id="tree-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+        <path d="M2,2 L10,6 L2,10 Z"></path>
+      </marker>
+    </defs>
+  `;
+
+  project.characterTree.links.forEach((link) => {
+    const from = project.characterTree.nodes.find((node) => node.id === link.fromNodeId);
+    const to = project.characterTree.nodes.find((node) => node.id === link.toNodeId);
+    if (!from || !to) return;
+
+    const x1 = from.x + 90;
+    const y1 = from.y + 36;
+    const x2 = to.x + 90;
+    const y2 = to.y + 36;
+    const lineLength = Math.hypot(x2 - x1, y2 - y1) || 1;
+    const targetOffset = Math.min(96, lineLength / 3);
+    const endX = x2 - ((x2 - x1) / lineLength) * targetOffset;
+    const endY = y2 - ((y2 - y1) / lineLength) * targetOffset;
+    const midX = (x1 + endX) / 2;
+    const midY = (y1 + endY) / 2;
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    group.dataset.treeLinkId = link.id;
+    group.innerHTML = `
+      <line x1="${x1}" y1="${y1}" x2="${endX}" y2="${endY}" marker-end="url(#tree-arrow)"></line>
+      <text x="${midX}" y="${midY - 8}"></text>
+      <g class="tree-link-remove" data-tree-link-remove="${link.id}" transform="translate(${midX + 72} ${midY - 24})">
+        <title>Remove this relationship line</title>
+        <circle cx="0" cy="0" r="11"></circle>
+        <text x="0" y="5" text-anchor="middle">-</text>
+      </g>
+    `;
+    group.querySelector("text").textContent = link.text || "relationship";
+    treeLines.append(group);
+  });
+}
+
+function addTreeNode() {
+  const project = getActiveProject();
+  const characterId = treeCharacterSelect.value;
+  if (!project || !characterId) return;
+
+  const count = project.characterTree.nodes.length;
+  project.characterTree.nodes.push({
+    id: crypto.randomUUID(),
+    characterId,
+    x: 160 + (count % 5) * 220,
+    y: 140 + Math.floor(count / 5) * 150,
+  });
+  saveProjects();
+  renderCharacterTree();
+}
+
+function addTreeRelation() {
+  const project = getActiveProject();
+  if (!project) return;
+  const fromNodeId = treeRelationFrom.value;
+  const toNodeId = treeRelationTo.value;
+  const text = treeRelationInput.value.trim();
+  if (!fromNodeId || !toNodeId || fromNodeId === toNodeId || !text) return;
+  const fromNode = project.characterTree.nodes.find((node) => node.id === fromNodeId);
+  const toNode = project.characterTree.nodes.find((node) => node.id === toNodeId);
+  if (!fromNode || !toNode) return;
+  const duplicate = project.characterTree.links.some((link) => (
+    (link.fromNodeId === fromNode.id && link.toNodeId === toNode.id) ||
+    (link.fromNodeId === toNode.id && link.toNodeId === fromNode.id)
+  ));
+  if (duplicate) {
+    alert("These two nodes are already connected. Click the relationship text to edit it.");
+    return;
+  }
+
+  project.characterTree.links.push({
+    id: crypto.randomUUID(),
+    fromNodeId,
+    toNodeId,
+    text,
+  });
+  treeRelationInput.value = "";
+  saveProjects();
+  renderCharacterTree();
+}
+
+function deleteTreeNode(id) {
+  const project = getActiveProject();
+  if (!project) return;
+  const node = project.characterTree.nodes.find((item) => item.id === id);
+  if (!node) return;
+  const character = getCharacterById(node.characterId);
+  const shouldRemove = confirm(`Remove this "${character?.name || "character"}" node from the tree only? The character will stay saved, and connected relationship lines for this node will be removed.`);
+  if (!shouldRemove) return;
+
+  project.characterTree.nodes = project.characterTree.nodes.filter((item) => item.id !== id);
+  project.characterTree.links = project.characterTree.links.filter((link) => link.fromNodeId !== id && link.toNodeId !== id);
+  saveProjects();
+  renderCharacterTree();
+}
+
+function beginTreeNodeDrag(event) {
+  const node = event.target.closest(".tree-node");
+  if (!node) return;
+  if (event.target.closest("[data-tree-action]")) return;
+  const project = getActiveProject();
+  const data = project?.characterTree.nodes.find((item) => item.id === node.dataset.treeNodeId);
+  if (!data) return;
+
+  const treePoint = screenToTree(event.clientX, event.clientY);
+  activeTreeDrag = {
+    id: data.id,
+    element: node,
+    offsetX: treePoint.x - data.x,
+    offsetY: treePoint.y - data.y,
+  };
+  node.classList.add("is-dragging");
+  treeBoard.setPointerCapture(event.pointerId);
+}
+
+function handleTreeNodeAction(event) {
+  const action = event.target.closest("[data-tree-action]");
+  const node = event.target.closest(".tree-node");
+  if (!action || !node) return;
+  if (action.dataset.treeAction === "remove") deleteTreeNode(node.dataset.treeNodeId);
+}
+
+function moveTreeNode(event) {
+  if (!activeTreeDrag) return;
+  const project = getActiveProject();
+  const node = project?.characterTree.nodes.find((item) => item.id === activeTreeDrag.id);
+  if (!node) return;
+
+  const treePoint = screenToTree(event.clientX, event.clientY);
+  node.x = clamp(treePoint.x - activeTreeDrag.offsetX, 20, 3800);
+  node.y = clamp(treePoint.y - activeTreeDrag.offsetY, 20, 2800);
+  activeTreeDrag.element.style.left = `${node.x}px`;
+  activeTreeDrag.element.style.top = `${node.y}px`;
+  treeLines.innerHTML = "";
+  renderTreeLines(project);
+}
+
+function endTreeNodeDrag() {
+  if (!activeTreeDrag) return;
+  activeTreeDrag.element.classList.remove("is-dragging");
+  activeTreeDrag = null;
+  saveProjects();
+}
+
+function editTreeRelation(event) {
+  const remove = event.target.closest("[data-tree-link-remove]");
+  if (remove) {
+    deleteTreeRelation(remove.dataset.treeLinkRemove);
+    return;
+  }
+
+  const label = event.target.closest("[data-tree-link-id]");
+  if (!label || event.target.tagName.toLowerCase() !== "text") return;
+  const project = getActiveProject();
+  const link = project?.characterTree.links.find((item) => item.id === label.dataset.treeLinkId);
+  if (!link) return;
+
+  const next = prompt("Relationship between these characters:", link.text);
+  if (next === null) return;
+  link.text = next.trim() || link.text;
+  saveProjects();
+  renderCharacterTree();
+}
+
+function deleteTreeRelation(id) {
+  const project = getActiveProject();
+  if (!project) return;
+  const link = project.characterTree.links.find((item) => item.id === id);
+  if (!link) return;
+  const shouldRemove = confirm(`Remove the "${link.text || "relationship"}" line? The character nodes will stay on the tree.`);
+  if (!shouldRemove) return;
+
+  project.characterTree.links = project.characterTree.links.filter((item) => item.id !== id);
+  saveProjects();
+  renderCharacterTree();
 }
 
 function createCharacter(event) {
@@ -1012,6 +1321,7 @@ function createCharacter(event) {
     goal,
     fear,
     lie,
+    gender: characterGenderInput.value,
     shade: characterShadeInput.value,
     screenTime: characterScreenTimeInput.value,
     createdAt: new Date().toISOString(),
@@ -1045,11 +1355,24 @@ function applyBoardView() {
   zoomLevel.textContent = `${Math.round(boardView.scale * 100)}%`;
 }
 
+function applyTreeView() {
+  treeSurface.style.transform = `translate(${treeView.x}px, ${treeView.y}px) scale(${treeView.scale})`;
+  treeZoomLevel.textContent = `${Math.round(treeView.scale * 100)}%`;
+}
+
 function screenToBoard(clientX, clientY) {
   const rect = board.getBoundingClientRect();
   return {
     x: (clientX - rect.left - boardView.x) / boardView.scale,
     y: (clientY - rect.top - boardView.y) / boardView.scale,
+  };
+}
+
+function screenToTree(clientX, clientY) {
+  const rect = treeBoard.getBoundingClientRect();
+  return {
+    x: (clientX - rect.left - treeView.x) / treeView.scale,
+    y: (clientY - rect.top - treeView.y) / treeView.scale,
   };
 }
 
@@ -1066,6 +1389,21 @@ function zoomBoard(nextScale, originClientX = board.clientWidth / 2, originClien
   boardView.x = originX - worldX * scale;
   boardView.y = originY - worldY * scale;
   applyBoardView();
+}
+
+function zoomTree(nextScale, originClientX = treeBoard.clientWidth / 2, originClientY = treeBoard.clientHeight / 2) {
+  const rect = treeBoard.getBoundingClientRect();
+  const originX = originClientX - rect.left;
+  const originY = originClientY - rect.top;
+  const oldScale = treeView.scale;
+  const scale = clamp(nextScale, minZoom, maxZoom);
+  const worldX = (originX - treeView.x) / oldScale;
+  const worldY = (originY - treeView.y) / oldScale;
+
+  treeView.scale = scale;
+  treeView.x = originX - worldX * scale;
+  treeView.y = originY - worldY * scale;
+  applyTreeView();
 }
 
 function cardTemplate(card, index) {
@@ -1361,23 +1699,45 @@ function handleBoardWheel(event) {
   applyBoardView();
 }
 
+function handleTreeWheel(event) {
+  event.preventDefault();
+
+  if (event.ctrlKey || event.metaKey) {
+    const zoomFactor = Math.exp(-event.deltaY * 0.01);
+    zoomTree(treeView.scale * zoomFactor, event.clientX, event.clientY);
+    return;
+  }
+
+  treeView.x -= event.deltaX;
+  treeView.y -= event.deltaY;
+  applyTreeView();
+}
+
 function handlePageZoomKeys(event) {
   if (!event.ctrlKey && !event.metaKey) return;
+  const isTreeLayer = document.body.dataset.layer === "tree";
 
   if (event.key === "+" || event.key === "=") {
     event.preventDefault();
-    zoomBoard(boardView.scale * 1.15);
+    if (isTreeLayer) zoomTree(treeView.scale * 1.15);
+    else zoomBoard(boardView.scale * 1.15);
   }
 
   if (event.key === "-") {
     event.preventDefault();
-    zoomBoard(boardView.scale / 1.15);
+    if (isTreeLayer) zoomTree(treeView.scale / 1.15);
+    else zoomBoard(boardView.scale / 1.15);
   }
 
   if (event.key === "0") {
     event.preventDefault();
-    boardView = getDefaultBoardView();
-    applyBoardView();
+    if (isTreeLayer) {
+      treeView = getDefaultBoardView();
+      applyTreeView();
+    } else {
+      boardView = getDefaultBoardView();
+      applyBoardView();
+    }
   }
 }
 
@@ -1535,24 +1895,37 @@ zoomReset.addEventListener("click", () => {
   boardView = getDefaultBoardView();
   applyBoardView();
 });
+treeZoomOut.addEventListener("click", () => zoomTree(treeView.scale / 1.2));
+treeZoomIn.addEventListener("click", () => zoomTree(treeView.scale * 1.2));
+treeZoomReset.addEventListener("click", () => {
+  treeView = getDefaultBoardView();
+  applyTreeView();
+});
 showProjects.addEventListener("click", () => setLayer("projects"));
 showCharacters.addEventListener("click", (event) => {
   event.preventDefault();
   openCharactersModal();
 });
 showScreenplay.addEventListener("click", () => setLayer("screenplay"));
-mobileProjectsLink.addEventListener("click", () => setLayer("projects"));
-mobileCharactersLink.addEventListener("click", () => {
-  closeMobilePanels();
-  openCharactersModal();
-});
-mobileScriptLink.addEventListener("click", () => setLayer("screenplay"));
 scriptToProjects.addEventListener("click", () => setLayer("projects"));
 scriptToCards.addEventListener("click", () => setLayer("cards"));
 scriptToCharacters.addEventListener("click", (event) => {
   event.preventDefault();
   openCharactersModal();
 });
+treeToProjects.addEventListener("click", () => setLayer("projects"));
+treeToCards.addEventListener("click", () => setLayer("cards"));
+treeToScript.addEventListener("click", () => setLayer("screenplay"));
+treeOpenCharacters.addEventListener("click", openCharactersModal);
+treeAddNode.addEventListener("click", addTreeNode);
+treeAddRelation.addEventListener("click", addTreeRelation);
+treeSurface.addEventListener("click", handleTreeNodeAction);
+treeBoard.addEventListener("pointerdown", beginTreeNodeDrag);
+treeBoard.addEventListener("pointermove", moveTreeNode);
+treeBoard.addEventListener("pointerup", endTreeNodeDrag);
+treeBoard.addEventListener("pointercancel", endTreeNodeDrag);
+treeBoard.addEventListener("wheel", handleTreeWheel, { passive: false });
+treeLines.addEventListener("click", editTreeRelation);
 buildScript.addEventListener("click", seedActiveCardScreenplay);
 exportScript.addEventListener("click", openExportModal);
 screenplayInput.addEventListener("input", saveScreenplay);
@@ -1611,6 +1984,7 @@ sceneModal.addEventListener("click", (event) => {
 characterForm.addEventListener("submit", createCharacter);
 characterAddButton.addEventListener("click", openCharacterForm);
 characterFormClose.addEventListener("click", closeCharacterForm);
+characterTreeButton.addEventListener("click", openCharacterTree);
 characterStrip.addEventListener("click", (event) => {
   const thumb = event.target.closest("[data-character-id]");
   if (!thumb) return;
@@ -1655,7 +2029,8 @@ setAutoBackup(localStorage.getItem(autoBackupStorageKey) === "true");
 renderProjects();
 if (activeProjectId && getActiveProject()) {
   render();
-  setLayer("projects");
+  const savedLayer = localStorage.getItem(activeLayerStorageKey);
+  setLayer(["cards", "screenplay", "tree"].includes(savedLayer) ? savedLayer : "projects");
 } else {
   setLayer("projects");
 }

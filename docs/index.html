@@ -37,6 +37,7 @@
         <ol>
           <li>Create a project from the Projects home screen with title and author name.</li>
           <li>Open Characters and create the people who will drive the story.</li>
+          <li>Use the Character Tree to map relationships between character nodes.</li>
           <li>Open Cards and add scene cards with title, scene beat, and emotion.</li>
           <li>Arrange cards freely on the board or reorder them from the Order drawer.</li>
           <li>Open Script, select a card, and write the actual screenplay for that scene.</li>
@@ -67,19 +68,28 @@
             <h3>Projects</h3>
             <p>
               Projects are the home layer. Create unlimited projects for separate films, episodes,
-              scenes, or drafts. Each project keeps its own cards and screenplay text.
+              scenes, or drafts. Each project keeps its own cards, characters, relationship tree,
+              author name, and screenplay text.
             </p>
           </article>
           <article>
             <span>02</span>
             <h3>Characters</h3>
             <p>
-              Characters store the desire, fear, lie, shade, and screen time for each person in a project.
-              Use them as the emotional engine before building scenes.
+              Characters store gender, desire, fear, lie, shade, and screen time for each person in a
+              project. Use them as the emotional engine before building scenes.
             </p>
           </article>
           <article>
             <span>03</span>
+            <h3>Character Tree</h3>
+            <p>
+              The tree is a relationship canvas. Add character nodes, connect them with directional
+              relationship lines, zoom out, and remove mistaken nodes or lines without deleting characters.
+            </p>
+          </article>
+          <article>
+            <span>04</span>
             <h3>Cards</h3>
             <p>
               Cards are the planning layer. Add a title, write the scene beat, choose the intended
@@ -87,7 +97,7 @@
             </p>
           </article>
           <article>
-            <span>04</span>
+            <span>05</span>
             <h3>Screenplay</h3>
             <p>
               Screenplay is the writing layer. Pick a card from the list, seed the editor with the
@@ -151,7 +161,8 @@
             <h3>Move and zoom</h3>
             <p>
               Drag cards around the board. Drag empty board space to pan. Use the zoom toolbar to zoom in,
-              zoom out, or reset the board view.
+              zoom out deeply, or reset the board view. The Cards header also gives quick access to
+              Projects, Characters, and Script.
             </p>
           </article>
           <article>
@@ -178,7 +189,7 @@
             <h3>Create a character</h3>
             <p>
               Use the Characters button from a project, Cards, or Script. Tap <strong>+</strong>, then add
-              the name, biggest desire or goal, biggest fear, and the lie the character believes.
+              the name, gender, biggest desire or goal, biggest fear, and the lie the character believes.
             </p>
           </article>
           <article>
@@ -200,6 +211,58 @@
             <p>
               During export, choose whether character briefs should print after the title page. Select all
               characters or only the ones needed for that draft.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section>
+        <h2>Character Tree</h2>
+        <p>
+          The Character Tree helps you see who is connected to whom before you write a scene. It works like
+          a relationship board for character nodes.
+        </p>
+        <div class="steps">
+          <article>
+            <h3>Open the tree</h3>
+            <p>
+              Open Characters, then tap <strong>TREE</strong>. The tree opens as a full canvas with its own
+              Projects, Cards, Script, and Characters navigation.
+            </p>
+          </article>
+          <article>
+            <h3>Add character nodes</h3>
+            <p>
+              Choose a character and tap <strong>Add node</strong>. A character can appear more than once
+              as separate nodes, useful when you want to explore different relationship clusters.
+            </p>
+          </article>
+          <article>
+            <h3>Connect from-to</h3>
+            <p>
+              Pick a <strong>From</strong> node, a <strong>To</strong> node, type the relationship, then
+              connect. Arrows show direction, so “mother to son” and “son to mother” are visually clear.
+            </p>
+          </article>
+          <article>
+            <h3>Edit or remove lines</h3>
+            <p>
+              Click the relationship text to rename it. Click the small minus beside a relationship label
+              to remove only that line. Character nodes remain on the tree.
+            </p>
+          </article>
+          <article>
+            <h3>Remove nodes</h3>
+            <p>
+              Use the minus on a node to remove only that node box from the tree. The character stays saved
+              in the project. Connected lines for that node are removed after confirmation.
+            </p>
+          </article>
+          <article>
+            <h3>Zoom and pan</h3>
+            <p>
+              Use the tree zoom controls, mouse wheel, trackpad, or <strong>Ctrl/Cmd</strong> zoom shortcuts.
+              The tree can zoom far out like the Cards board, and dragging nodes works while zoomed.
             </p>
           </article>
         </div>
@@ -259,9 +322,13 @@
       <section>
         <h2>Mobile Guide</h2>
         <p>
-          Mobile keeps the board as the main screen. Use the bottom-right <strong>+</strong> button to add
-          cards and the cards button to manage order, move to Projects, or open Script. Long-press a card
-          for edit and delete.
+          Mobile keeps the active canvas as the main screen. The Cards, Tree, and Script pages keep their
+          navigation in the top header. Use the bottom-right <strong>+</strong> button on Cards to add cards,
+          and the cards button to manage order. Long-press a card for edit and delete.
+        </p>
+        <p>
+          The app remembers the last main page. If you refresh while writing in Cards, Script, or Character
+          Tree, Draft It returns to that same page as long as the active project still exists.
         </p>
       </section>
 
@@ -277,7 +344,7 @@
             <h3>Manual backup</h3>
             <p>
               On the Projects page, tap <strong>Export .draftit</strong>. Keep that file somewhere safe.
-              It contains your projects, cards, characters, authors, and screenplay text.
+              It contains your projects, cards, characters, relationship trees, authors, and screenplay text.
             </p>
           </article>
           <article>

@@ -112,9 +112,6 @@
           <div class="section-heading">
             <h2>Order</h2>
             <div class="section-actions">
-              <button id="mobile-projects-link" class="zoom-button mobile-nav-link" type="button">Projects</button>
-              <button id="mobile-characters-link" class="zoom-button mobile-nav-link" type="button">Characters</button>
-              <button id="mobile-script-link" class="zoom-button mobile-nav-link" type="button">Script</button>
               <button id="clear-board" class="icon-button" type="button" title="Delete all cards" aria-label="Delete all cards">🗑</button>
               <button class="mobile-close" type="button" title="Close" aria-label="Close">×</button>
             </div>
@@ -124,15 +121,17 @@
       </aside>
 
       <section class="workspace" aria-label="Whiteboard workspace">
-        <header class="board-toolbar">
+        <header class="screenplay-toolbar board-toolbar">
           <div>
             <p class="eyebrow">Whiteboard</p>
-            <h2 id="active-project-title">Move cards anywhere</h2>
+            <h1 id="active-project-title">Move cards anywhere</h1>
           </div>
-          <div class="board-stats">
+          <div class="screenplay-actions board-nav-actions">
             <button id="show-projects" class="zoom-button" type="button" title="Projects" aria-label="Projects">Projects</button>
             <button id="show-characters" class="zoom-button" type="button" title="Characters" aria-label="Characters">Characters</button>
             <button id="show-screenplay" class="zoom-button" type="button" title="Screenplay" aria-label="Screenplay">Script</button>
+          </div>
+          <div class="tree-zoom-actions board-zoom-actions" aria-label="Board zoom controls">
             <button id="zoom-out" class="zoom-button" type="button" title="Zoom out" aria-label="Zoom out">−</button>
             <span id="zoom-level">100%</span>
             <button id="zoom-in" class="zoom-button" type="button" title="Zoom in" aria-label="Zoom in">+</button>
@@ -196,6 +195,56 @@
         </div>
       </section>
 
+      <section id="character-tree-layer" class="character-tree-layer" aria-label="Character tree">
+        <header class="screenplay-toolbar tree-toolbar">
+          <div>
+            <p class="eyebrow">Character Tree</p>
+            <h1 id="tree-project-title">Relationships</h1>
+          </div>
+          <div class="screenplay-actions">
+            <button id="tree-to-projects" class="zoom-button" type="button">Projects</button>
+            <button id="tree-to-cards" class="zoom-button" type="button">Cards</button>
+            <button id="tree-to-script" class="zoom-button" type="button">Script</button>
+            <button id="tree-open-characters" class="zoom-button" type="button">Characters</button>
+          </div>
+          <div class="tree-zoom-actions" aria-label="Tree zoom controls">
+            <button id="tree-zoom-out" class="zoom-button" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+            <span id="tree-zoom-level">100%</span>
+            <button id="tree-zoom-in" class="zoom-button" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+            <button id="tree-zoom-reset" class="zoom-button" type="button" title="Reset tree view" aria-label="Reset tree view">↺</button>
+          </div>
+        </header>
+        <div class="tree-tools">
+          <label>
+            <span>Add character node</span>
+            <select id="tree-character-select"></select>
+          </label>
+          <button id="tree-add-node" class="primary-action" type="button">Add node</button>
+          <label>
+            <span>From</span>
+            <select id="tree-relation-from"></select>
+          </label>
+          <label>
+            <span>To</span>
+            <select id="tree-relation-to"></select>
+          </label>
+          <label class="tree-relation-text">
+            <span>Relationship</span>
+            <input id="tree-relation-input" type="text" maxlength="80" placeholder="mentor, rival, sibling, secret love..." />
+          </label>
+          <button id="tree-add-relation" class="primary-action" type="button">Connect</button>
+        </div>
+        <div id="tree-board" class="tree-board">
+          <div id="tree-surface" class="tree-surface">
+            <svg id="tree-lines" class="tree-lines" aria-hidden="true"></svg>
+            <div id="tree-empty" class="tree-empty">
+              <h2>Build character relationships.</h2>
+              <p>Add character nodes, drag them around, then connect them with relationship text.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div class="mobile-actions" aria-label="Mobile board actions">
         <button id="mobile-add-card" type="button" title="Add card" aria-label="Add card">+</button>
         <button id="mobile-manage-cards" type="button" title="Manage cards" aria-label="Manage cards">▦</button>
@@ -225,6 +274,7 @@
               <p class="eyebrow">Characters</p>
               <h2 id="characters-project-title">Project characters</h2>
             </div>
+            <button id="character-tree-button" class="zoom-button" type="button">TREE</button>
           </header>
           <form id="character-form" class="character-form" hidden>
             <div class="character-form-heading">
@@ -248,6 +298,14 @@
               <textarea id="character-lie-input" rows="3" maxlength="280" placeholder="The false belief driving them" required></textarea>
             </label>
             <div class="character-select-row">
+              <label>
+                <span>Gender</span>
+                <select id="character-gender-input" required>
+                  <option value="MALE">MALE</option>
+                  <option value="FEMALE">FEMALE</option>
+                  <option value="OTHER">OTHER</option>
+                </select>
+              </label>
               <label>
                 <span>Shade</span>
                 <select id="character-shade-input" required>
