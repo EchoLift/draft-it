@@ -27,17 +27,18 @@
           <form id="project-form" class="project-form">
             <input id="project-title-input" type="text" maxlength="60" placeholder="New screenplay project" required />
             <input id="project-author-input" type="text" maxlength="60" placeholder="Author name" required />
-            <button class="primary-action" type="submit">Create project</button>
+            <button id="project-submit" class="primary-action" type="submit">Create project</button>
+            <button id="project-edit-cancel" class="zoom-button" type="button" hidden>Cancel</button>
           </form>
           <div class="backup-tools" aria-label="Draft It backups">
-            <button id="manual-backup" class="zoom-button" type="button">Export .draftit</button>
+            <button id="manual-backup" class="zoom-button" type="button">Export active project</button>
             <label class="import-backup zoom-button">
-              <span>Import .draftit</span>
+              <span>Import project</span>
               <input id="import-backup-input" type="file" accept=".draftit,application/json" />
             </label>
             <label class="auto-backup-toggle">
               <input id="auto-backup-toggle" type="checkbox" />
-              <span>Auto backup every 5 min</span>
+              <span>Auto backup active project every 5 min</span>
             </label>
             <span id="backup-status" class="backup-status">Backups are off</span>
           </div>
@@ -139,10 +140,22 @@
             <span id="card-count">0 cards</span>
             <span id="save-state">Saved locally</span>
           </div>
+          <div class="board-link-actions" aria-label="Custom card links">
+            <label>
+              <span>From</span>
+              <select id="card-link-from"></select>
+            </label>
+            <label>
+              <span>To</span>
+              <select id="card-link-to"></select>
+            </label>
+            <button id="add-card-link" class="zoom-button" type="button">Connect</button>
+          </div>
         </header>
 
         <div id="board" class="board" aria-label="Freestyle card board">
           <div id="board-surface" class="board-surface">
+            <svg id="board-lines" class="board-lines" aria-hidden="true"></svg>
             <div id="empty-state" class="empty-state">
               <div class="empty-visual" aria-hidden="true">
                 <span></span>
@@ -171,7 +184,7 @@
               <span>Select all</span>
             </label>
             <button id="build-script" class="primary-action" type="button">Use scene</button>
-            <button id="export-script" class="primary-action" type="button">Export</button>
+            <button id="export-script" class="primary-action" type="button">Export PDF</button>
           </div>
         </header>
         <div class="screenplay-workspace">

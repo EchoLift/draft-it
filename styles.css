@@ -216,9 +216,13 @@ body[data-layer="tree"] .screenplay-layer {
   min-width: min(360px, 58vw);
 }
 
+#project-edit-cancel[hidden] {
+  display: none;
+}
+
 .project-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 360px));
+  grid-template-columns: repeat(auto-fill, minmax(420px, 560px));
   gap: 18px;
   padding: 28px;
 }
@@ -250,7 +254,7 @@ body[data-layer="tree"] .screenplay-layer {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
-  gap: 10px;
+  gap: 7px;
 }
 
 .project-card-actions .primary-action,
@@ -260,12 +264,16 @@ body[data-layer="tree"] .screenplay-layer {
   justify-content: center;
   width: 100%;
   min-width: 0;
-  height: 50px;
-  min-height: 50px;
+  height: 44px;
+  min-height: 44px;
   border-radius: var(--radius);
-  padding: 0 8px;
-  font-size: 0.86rem;
+  padding: 0 6px;
+  font-size: 0.74rem;
   white-space: nowrap;
+}
+
+.danger-action {
+  color: #9f2b2b;
 }
 
 .screenplay-layer {
@@ -298,6 +306,33 @@ body[data-layer="tree"] .screenplay-layer {
 .tree-zoom-actions #tree-zoom-level {
   min-width: 48px;
   text-align: center;
+}
+
+.board-link-actions {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.board-link-actions label {
+  display: grid;
+  flex: 1 1 180px;
+  gap: 4px;
+}
+
+.board-link-actions label span {
+  font-size: 0.68rem;
+}
+
+.board-link-actions select {
+  height: 34px;
+  padding: 6px 10px;
+}
+
+.board-link-actions .zoom-button {
+  height: 34px;
 }
 
 .tree-tools {
@@ -923,6 +958,8 @@ select:focus {
 
 .board-zoom-actions #zoom-level,
 .zoom-button {
+  display: grid;
+  place-items: center;
   border: 1px solid #cfd5dd;
   border-radius: 999px;
   background: #fff;
@@ -930,6 +967,7 @@ select:focus {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 700;
+  line-height: 1;
 }
 
 .board-zoom-actions #card-count,
@@ -979,10 +1017,53 @@ select:focus {
   will-change: transform;
 }
 
+.board-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 12000px;
+  height: 12000px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.board-lines line {
+  stroke: rgba(32, 33, 36, 0.36);
+  stroke-width: 3;
+}
+
+.board-lines marker path {
+  fill: rgba(32, 33, 36, 0.48);
+}
+
+.board-link.is-custom line {
+  stroke: var(--accent);
+  stroke-dasharray: 9 7;
+  stroke-width: 3.5;
+}
+
+.board-link-remove {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.board-link-remove circle {
+  fill: #fff;
+  stroke: #cfd5dd;
+  stroke-width: 1.5;
+}
+
+.board-link-remove text {
+  fill: #9f2b2b;
+  font: 900 16px Inter, sans-serif;
+  pointer-events: none;
+}
+
 .board-surface::before {
   content: "";
   position: absolute;
   inset: -6000px;
+  z-index: 0;
   background-image:
     linear-gradient(rgba(36, 45, 54, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(36, 45, 54, 0.05) 1px, transparent 1px);
@@ -1056,7 +1137,7 @@ select:focus {
   cursor: grab;
   touch-action: none;
   user-select: none;
-  z-index: 1;
+  z-index: 2;
   overflow: hidden;
 }
 
@@ -1201,6 +1282,7 @@ select:focus {
   grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   width: min(760px, calc(100vw - 44px));
+  min-width: 0;
   max-height: min(86dvh, 760px);
   overflow: hidden;
   border: 1px solid #cfd5dd;
@@ -1244,21 +1326,33 @@ select:focus {
 }
 
 .characters-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  justify-content: space-between;
   gap: 12px;
   grid-column: 1 / -1;
-  padding-right: 48px;
+  padding-right: 68px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .characters-header .zoom-button {
-  margin-right: 40px;
+  margin-right: 0;
+}
+
+.characters-header > div {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .characters-header h2 {
   margin: 0;
   font-size: 1.2rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .character-form {
@@ -1317,8 +1411,10 @@ select:focus {
   display: grid;
   grid-template-rows: auto auto;
   gap: 12px;
+  width: 100%;
   min-width: 0;
   min-height: 0;
+  overflow: visible;
 }
 
 .characters-modal.is-creating-character .character-browser {
@@ -1328,9 +1424,17 @@ select:focus {
 .character-strip {
   display: flex;
   gap: 8px;
-  overflow-x: auto;
+  justify-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
   padding: 2px 2px 8px;
   scrollbar-width: none;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
 }
 
 .character-strip::-webkit-scrollbar {
@@ -1349,6 +1453,7 @@ select:focus {
   color: var(--ink);
   padding: 9px;
   text-align: left;
+  touch-action: pan-x;
   cursor: pointer;
 }
 
@@ -1371,6 +1476,16 @@ select:focus {
   color: var(--muted);
   font-size: 0.68rem;
   font-weight: 850;
+}
+
+@media (max-width: 1180px) {
+  .project-list {
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  }
+
+  .project-card-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .character-detail {
@@ -1693,7 +1808,8 @@ select:focus {
   }
 
   .board-nav-actions,
-  .board-zoom-actions {
+  .board-zoom-actions,
+  .board-link-actions {
     gap: 6px;
     overflow-x: auto;
     padding-bottom: 2px;
@@ -1701,15 +1817,28 @@ select:focus {
   }
 
   .board-nav-actions::-webkit-scrollbar,
-  .board-zoom-actions::-webkit-scrollbar {
+  .board-zoom-actions::-webkit-scrollbar,
+  .board-link-actions::-webkit-scrollbar {
     display: none;
+  }
+
+  .board-link-actions {
+    flex-wrap: nowrap;
+    align-items: end;
+  }
+
+  .board-link-actions label {
+    flex: 0 0 150px;
   }
 
   .board-zoom-actions .zoom-button,
   .board-zoom-actions #zoom-level {
+    display: grid;
+    place-items: center;
     flex: 0 0 auto;
     height: 30px;
     min-height: 30px;
+    min-width: 44px;
     padding: 0 9px;
   }
 
@@ -2016,6 +2145,10 @@ select:focus {
     grid-column: span 2;
   }
 
+  .project-form #project-edit-cancel:not([hidden]) {
+    grid-column: span 2;
+  }
+
   .project-list {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -2029,15 +2162,15 @@ select:focus {
   }
 
   .project-card-actions {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .project-card-actions .primary-action,
   .project-card-actions .zoom-button {
-    height: 40px;
-    min-height: 40px;
+    height: 38px;
+    min-height: 38px;
     padding: 0 6px;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
   }
 
   .characters-modal {

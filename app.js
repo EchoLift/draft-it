@@ -1,8 +1,11 @@
 const board = document.querySelector("#board");
 const boardSurface = document.querySelector("#board-surface");
+const boardLines = document.querySelector("#board-lines");
 const projectForm = document.querySelector("#project-form");
 const projectTitleInput = document.querySelector("#project-title-input");
 const projectAuthorInput = document.querySelector("#project-author-input");
+const projectSubmit = document.querySelector("#project-submit");
+const projectEditCancel = document.querySelector("#project-edit-cancel");
 const projectList = document.querySelector("#project-list");
 const manualBackup = document.querySelector("#manual-backup");
 const importBackupInput = document.querySelector("#import-backup-input");
@@ -53,6 +56,9 @@ const zoomLevel = document.querySelector("#zoom-level");
 const zoomIn = document.querySelector("#zoom-in");
 const zoomOut = document.querySelector("#zoom-out");
 const zoomReset = document.querySelector("#zoom-reset");
+const cardLinkFrom = document.querySelector("#card-link-from");
+const cardLinkTo = document.querySelector("#card-link-to");
+const addCardLink = document.querySelector("#add-card-link");
 const clearBoard = document.querySelector("#clear-board");
 const mobileAddCard = document.querySelector("#mobile-add-card");
 const mobileManageCards = document.querySelector("#mobile-manage-cards");
@@ -135,6 +141,8 @@ let exportSelectionTouched = false;
 let screenplayLineMemory = new Map();
 let autoBackupTimer = null;
 let activeTreeDrag = null;
+let editingProjectId = null;
+let characterStripDrag = null;
 
 function loadProjects() {
   try {
@@ -165,6 +173,7 @@ function loadProjects() {
 function ensureProjectCollections(project) {
   project.author = project.author || "";
   project.cards = Array.isArray(project.cards) ? project.cards : [];
+  project.cardLinks = Array.isArray(project.cardLinks) ? project.cardLinks : [];
   project.characters = Array.isArray(project.characters) ? project.characters : [];
   project.characterTree = project.characterTree && typeof project.characterTree === "object"
     ? project.characterTree
@@ -196,18 +205,31 @@ function saveProjects() {
   if (activeProjectId) localStorage.setItem(activeProjectStorageKey, activeProjectId);
 }
 
-function getDraftItBackupPayload() {
-  projects.forEach(ensureProjectCollections);
+function slugifyBackupName(value) {
+  return String(value || "project")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48) || "project";
+}
+
+function cloneProjectForBackup(project) {
+  return JSON.parse(JSON.stringify(ensureProjectCollections(project)));
+}
+
+function getDraftItBackupPayload(project = getActiveProject()) {
+  if (!project) return null;
   const exportedAt = new Date();
   return {
     app: "Draft It",
     format: "draftit",
-    version: 1,
+    scope: "project",
+    version: 2,
     exportedAt: exportedAt.toISOString(),
     exportedAtIst: formatIstTimestamp(exportedAt),
     timezone: backupTimezone,
-    activeProjectId,
-    projects,
+    project: cloneProjectForBackup(project),
   };
 }
 
@@ -229,29 +251,35 @@ function formatIstTimestamp(date) {
   return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second} IST`;
 }
 
-function getBackupFilename() {
+function getBackupFilename(project = getActiveProject()) {
   const stamp = formatIstTimestamp(new Date())
     .replace(" IST", "")
     .replaceAll(":", "-")
     .replace(" ", "_");
-  return `draft-it-backup-${stamp}-IST.draftit`;
+  return `draft-it-${slugifyBackupName(project?.title)}-${stamp}-IST.draftit`;
 }
 
-function downloadDraftItBackup(reason = "manual") {
-  const blob = new Blob([JSON.stringify(getDraftItBackupPayload(), null, 2)], {
+function downloadDraftItBackup(reason = "manual", projectId = activeProjectId) {
+  const project = projects.find((item) => item.id === projectId) || getActiveProject();
+  if (!project) {
+    alert("Create or select a project before exporting a .draftit file.");
+    return;
+  }
+
+  const blob = new Blob([JSON.stringify(getDraftItBackupPayload(project), null, 2)], {
     type: "application/json",
   });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = getBackupFilename();
+  link.download = getBackupFilename(project);
   document.body.append(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
   backupStatus.textContent = reason === "auto"
-    ? `Auto backup downloaded ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-    : "Backup downloaded";
+    ? `Auto backup downloaded ${project.title} ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+    : `Project backup downloaded: ${project.title}`;
 }
 
 function normalizeImportedProjects(importedProjects) {
@@ -263,6 +291,7 @@ function normalizeImportedProjects(importedProjects) {
       title: project.title || "Untitled Project",
       author: project.author || "",
       cards: Array.isArray(project.cards) ? project.cards : [],
+      cardLinks: Array.isArray(project.cardLinks) ? project.cardLinks : [],
       characters: Array.isArray(project.characters) ? project.characters : [],
       characterTree: project.characterTree && typeof project.characterTree === "object"
         ? project.characterTree
@@ -272,20 +301,37 @@ function normalizeImportedProjects(importedProjects) {
     }));
 }
 
+function getImportedProjectList(payload) {
+  if (payload?.project && typeof payload.project === "object") {
+    return normalizeImportedProjects([payload.project]);
+  }
+  return normalizeImportedProjects(payload?.projects || payload);
+}
+
 function restoreDraftItBackup(payload) {
-  const importedProjects = normalizeImportedProjects(payload?.projects || payload);
+  const importedProjects = getImportedProjectList(payload);
   if (!importedProjects.length) {
     alert("This .draftit file does not contain any projects.");
     return;
   }
 
-  const shouldRestore = confirm(`Import ${importedProjects.length} project${importedProjects.length === 1 ? "" : "s"} from this .draftit file? This will replace the projects currently in this browser.`);
-  if (!shouldRestore) return;
+  const existingIds = new Set(projects.map((project) => project.id));
+  const replacing = importedProjects.filter((project) => existingIds.has(project.id));
+  const addingCount = importedProjects.length - replacing.length;
+  const message = [
+    `Import ${importedProjects.length} project${importedProjects.length === 1 ? "" : "s"} from this .draftit file?`,
+    addingCount ? `${addingCount} new project${addingCount === 1 ? "" : "s"} will be added.` : "",
+    replacing.length ? `${replacing.length} existing project${replacing.length === 1 ? "" : "s"} with the same backup id will be updated.` : "",
+    "Your other projects will stay in this browser.",
+  ].filter(Boolean).join("\n");
+  if (!confirm(message)) return;
 
-  projects = importedProjects;
-  activeProjectId = importedProjects.some((project) => project.id === payload?.activeProjectId)
-    ? payload.activeProjectId
-    : importedProjects[0].id;
+  importedProjects.forEach((project) => {
+    const existingIndex = projects.findIndex((item) => item.id === project.id);
+    if (existingIndex >= 0) projects[existingIndex] = project;
+    else projects.unshift(project);
+  });
+  activeProjectId = importedProjects[0].id;
   cards = getActiveProject()?.cards || [];
   activeScriptCardId = cards[0]?.id || null;
   selectedExportCardIds = new Set(cards.map((card) => card.id));
@@ -294,7 +340,9 @@ function restoreDraftItBackup(payload) {
   renderProjects();
   render();
   setLayer("projects");
-  backupStatus.textContent = "Backup imported";
+  backupStatus.textContent = importedProjects.length === 1
+    ? `Project imported: ${importedProjects[0].title}`
+    : `${importedProjects.length} projects imported`;
 }
 
 function importDraftItBackup(event) {
@@ -331,7 +379,11 @@ function setAutoBackup(enabled) {
 
 function saveCards() {
   const project = getActiveProject();
-  if (project) project.cards = cards;
+  if (project) {
+    project.cards = cards;
+    const cardIds = new Set(cards.map((card) => card.id));
+    project.cardLinks = project.cardLinks.filter((link) => cardIds.has(link.fromCardId) && cardIds.has(link.toCardId));
+  }
   saveProjects();
   saveState.textContent = "Saved locally";
 }
@@ -358,6 +410,7 @@ function setLayer(layer) {
 }
 
 function setActiveProject(id, layer = "cards") {
+  cancelProjectEdit();
   activeProjectId = id;
   const project = getActiveProject();
   cards = project?.cards || [];
@@ -395,6 +448,9 @@ function renderProjects() {
         <button class="primary-action" type="button" data-open-project="${project.id}">Cards</button>
         <button class="zoom-button" type="button" data-open-characters="${project.id}">Characters</button>
         <button class="zoom-button" type="button" data-open-script="${project.id}">Script</button>
+        <button class="zoom-button" type="button" data-edit-project="${project.id}">Edit</button>
+        <button class="zoom-button" type="button" data-export-project="${project.id}">Export</button>
+        <button class="zoom-button danger-action" type="button" data-delete-project="${project.id}">Delete</button>
       </div>
     `;
     item.querySelector("h2").textContent = project.title;
@@ -410,11 +466,17 @@ function createProject(event) {
   const author = projectAuthorInput.value.trim();
   if (!title || !author) return;
 
+  if (editingProjectId) {
+    updateProject(editingProjectId, title, author);
+    return;
+  }
+
   const project = {
     id: crypto.randomUUID(),
     title,
     author,
     cards: [],
+    cardLinks: [],
     characters: [],
     characterTree: { nodes: [], links: [] },
     screenplay: "",
@@ -424,6 +486,68 @@ function createProject(event) {
   projectTitleInput.value = "";
   projectAuthorInput.value = "";
   setActiveProject(project.id, "cards");
+}
+
+function startProjectEdit(id) {
+  const project = projects.find((item) => item.id === id);
+  if (!project) return;
+
+  editingProjectId = id;
+  projectTitleInput.value = project.title || "";
+  projectAuthorInput.value = project.author || "";
+  projectSubmit.textContent = "Update project";
+  projectEditCancel.hidden = false;
+  projectTitleInput.focus();
+}
+
+function cancelProjectEdit() {
+  if (!editingProjectId && projectEditCancel.hidden) return;
+  editingProjectId = null;
+  projectTitleInput.value = "";
+  projectAuthorInput.value = "";
+  projectSubmit.textContent = "Create project";
+  projectEditCancel.hidden = true;
+}
+
+function updateProject(id, title, author) {
+  const project = projects.find((item) => item.id === id);
+  if (!project) return;
+
+  project.title = title;
+  project.author = author;
+  saveProjects();
+  cancelProjectEdit();
+  renderProjects();
+  if (id === activeProjectId) {
+    render();
+    if (document.body.dataset.layer === "screenplay") renderScreenplay();
+    if (document.body.dataset.layer === "tree") renderCharacterTree();
+  }
+}
+
+function deleteProject(id) {
+  const project = projects.find((item) => item.id === id);
+  if (!project) return;
+  const shouldDelete = confirm(`Delete project "${project.title}"? This removes its cards, characters, tree, and screenplay. This cannot be undone.`);
+  if (!shouldDelete) return;
+
+  projects = projects.filter((item) => item.id !== id);
+  if (editingProjectId === id) cancelProjectEdit();
+  if (activeProjectId === id) {
+    activeProjectId = projects[0]?.id || null;
+    cards = getActiveProject()?.cards || [];
+    activeScriptCardId = cards[0]?.id || null;
+    activeCharacterId = getActiveProject()?.characters?.[0]?.id || null;
+    selectedExportCardIds = new Set(cards.map((card) => card.id));
+  }
+  saveProjects();
+  renderProjects();
+  if (activeProjectId) render();
+  else {
+    cards = [];
+    render();
+  }
+  setLayer("projects");
 }
 
 function renderScreenplay() {
@@ -750,7 +874,21 @@ function exportCurrentProject(characterIds = []) {
           .scene { break-after: page; margin-bottom: 32px; }
           .scene:last-child { break-after: auto; }
           .script-page { width: 100%; font: 12pt/1.45 Courier, monospace; }
-          .script-line { min-height: 1.45em; white-space: pre-wrap; overflow-wrap: break-word; }
+          .script-line {
+            min-height: 1.45em;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+          }
+          .script-line:not(.character):not(.parenthetical):not(.dialogue):not(.blank-line) {
+            margin-bottom: 1.45em;
+          }
+          .dialogue + .scene-heading,
+          .dialogue + .action,
+          .dialogue + .shot,
+          .dialogue + .transition,
+          .dialogue + .character {
+            margin-top: 1.45em;
+          }
           .scene-heading,
           .action,
           .shot { width: 100%; }
@@ -822,6 +960,37 @@ function handleScreenplayEnter(event) {
   saveScreenplay();
 }
 
+const dialogueIndent = "          ";
+const dialogueMaxChars = 42;
+
+function wrapScreenplayText(text, maxChars) {
+  const words = String(text || "").trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return [""];
+
+  return words.reduce((lines, word) => {
+    const current = lines[lines.length - 1] || "";
+    const next = current ? `${current} ${word}` : word;
+    if (current && next.length > maxChars) lines.push(word);
+    else lines[lines.length - 1] = next;
+    return lines;
+  }, [""]);
+}
+
+function formatDialogueText(text) {
+  return wrapScreenplayText(text, dialogueMaxChars)
+    .map((line) => `${dialogueIndent}${line}`)
+    .join("\n");
+}
+
+const spacedScreenplayModes = new Set(["scene", "action", "dialogue", "transition", "shot"]);
+
+function getScreenplaySpacingSuffix(value, lineEnd) {
+  const after = value.slice(lineEnd);
+  if (after.startsWith("\n\n")) return "";
+  if (after.startsWith("\n")) return "\n";
+  return "\n\n";
+}
+
 function formatScreenplayLine(mode) {
   if (screenplayInput.disabled) return;
 
@@ -831,17 +1000,20 @@ function formatScreenplayLine(mode) {
     scene: () => original.toUpperCase(),
     action: () => original.replace(/[A-Za-z]/, (match) => match.toUpperCase()),
     character: () => `                    ${original.toUpperCase()}`,
-    dialogue: () => `          ${original}`,
+    dialogue: () => formatDialogueText(original),
     parenthetical: () => `               (${original})`,
     transition: () => `                              ${original.toUpperCase().replace(/:?$/, ":")}`,
     shot: () => original.toUpperCase(),
   };
   const replacement = (formats[mode] || formats.action)();
   const value = screenplayInput.value;
+  const spacingSuffix = spacedScreenplayModes.has(mode)
+    ? getScreenplaySpacingSuffix(value, lineEnd)
+    : "";
 
-  screenplayInput.value = `${value.slice(0, lineStart)}${replacement}${value.slice(lineEnd)}`;
+  screenplayInput.value = `${value.slice(0, lineStart)}${replacement}${spacingSuffix}${value.slice(lineEnd)}`;
   screenplayInput.focus();
-  const cursor = lineStart + replacement.length;
+  const cursor = lineStart + replacement.length + (spacedScreenplayModes.has(mode) ? 2 : 0);
   screenplayInput.setSelectionRange(cursor, cursor);
   saveScreenplay();
 }
@@ -958,6 +1130,30 @@ function openCharacterForm() {
 function closeCharacterForm() {
   characterForm.hidden = true;
   charactersModal.classList.remove("is-creating-character");
+}
+
+function beginCharacterStripDrag(event) {
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+  characterStripDrag = {
+    pointerId: event.pointerId,
+    x: event.clientX,
+    scrollLeft: characterStrip.scrollLeft,
+    moved: false,
+  };
+}
+
+function moveCharacterStripDrag(event) {
+  if (!characterStripDrag || characterStripDrag.pointerId !== event.pointerId) return;
+  const deltaX = event.clientX - characterStripDrag.x;
+  if (Math.abs(deltaX) > 4) characterStripDrag.moved = true;
+  characterStrip.scrollLeft = characterStripDrag.scrollLeft - deltaX;
+}
+
+function endCharacterStripDrag(event) {
+  if (!characterStripDrag || characterStripDrag.pointerId !== event.pointerId) return;
+  window.setTimeout(() => {
+    characterStripDrag = null;
+  }, 0);
 }
 
 function renderCharacters() {
@@ -1439,6 +1635,7 @@ function render() {
   const project = getActiveProject();
   activeProjectTitle.textContent = project ? project.title : "Move cards anywhere";
   boardSurface.querySelectorAll(".scene-card").forEach((card) => card.remove());
+  renderCardLinkControls(project);
 
   cards.forEach((card, index) => {
     boardSurface.append(cardTemplate(card, index));
@@ -1469,6 +1666,130 @@ function render() {
 
   emptyState.hidden = cards.length > 0;
   cardCount.textContent = `${cards.length} ${cards.length === 1 ? "card" : "cards"}`;
+  renderBoardLines();
+}
+
+function renderCardLinkControls(project) {
+  [cardLinkFrom, cardLinkTo].forEach((select) => {
+    select.innerHTML = "";
+    cards.forEach((card, index) => {
+      const option = document.createElement("option");
+      option.value = card.id;
+      option.textContent = `${index + 1}. ${card.title}`;
+      select.append(option);
+    });
+  });
+  addCardLink.disabled = !project || cards.length < 3;
+}
+
+function getCardCenter(card) {
+  const element = boardSurface.querySelector(`.scene-card[data-id="${card.id}"]`);
+  const width = element?.offsetWidth || 240;
+  const height = element?.offsetHeight || 190;
+  return {
+    x: card.x + width / 2,
+    y: card.y + height / 2,
+    radius: Math.min(width, height) * 0.42,
+  };
+}
+
+function getLineEndPoint(from, to) {
+  const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
+  const offset = Math.min(to.radius || 84, length / 3);
+  return {
+    x: to.x - ((to.x - from.x) / length) * offset,
+    y: to.y - ((to.y - from.y) / length) * offset,
+  };
+}
+
+function appendBoardLine({ fromCard, toCard, type, id }) {
+  const from = getCardCenter(fromCard);
+  const to = getCardCenter(toCard);
+  const end = getLineEndPoint(from, to);
+  const midX = (from.x + end.x) / 2;
+  const midY = (from.y + end.y) / 2;
+  const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  group.classList.add("board-link", `is-${type}`);
+  if (id) group.dataset.cardLinkId = id;
+  group.innerHTML = `
+    <line x1="${from.x}" y1="${from.y}" x2="${end.x}" y2="${end.y}" marker-end="url(#board-arrow)"></line>
+    ${type === "custom" ? `
+      <g class="board-link-remove" data-card-link-remove="${id}" transform="translate(${midX} ${midY})">
+        <title>Remove this card link</title>
+        <circle cx="0" cy="0" r="11"></circle>
+        <text x="0" y="5" text-anchor="middle">-</text>
+      </g>
+    ` : ""}
+  `;
+  boardLines.append(group);
+}
+
+function renderBoardLines() {
+  const project = getActiveProject();
+  boardLines.innerHTML = `
+    <defs>
+      <marker id="board-arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+        <path d="M2,2 L10,6 L2,10 Z"></path>
+      </marker>
+    </defs>
+  `;
+  if (!project || cards.length < 2) return;
+
+  cards.slice(0, -1).forEach((card, index) => {
+    appendBoardLine({
+      fromCard: card,
+      toCard: cards[index + 1],
+      type: "order",
+    });
+  });
+
+  project.cardLinks.forEach((link) => {
+    const fromCard = cards.find((card) => card.id === link.fromCardId);
+    const toCard = cards.find((card) => card.id === link.toCardId);
+    if (!fromCard || !toCard) return;
+    appendBoardLine({ fromCard, toCard, type: "custom", id: link.id });
+  });
+}
+
+function addCustomCardLink() {
+  const project = getActiveProject();
+  if (!project) return;
+  const fromCardId = cardLinkFrom.value;
+  const toCardId = cardLinkTo.value;
+  if (!fromCardId || !toCardId || fromCardId === toCardId) return;
+
+  const fromIndex = cards.findIndex((card) => card.id === fromCardId);
+  const toIndex = cards.findIndex((card) => card.id === toCardId);
+  if (fromIndex < 0 || toIndex < 0) return;
+  if (Math.abs(fromIndex - toIndex) === 1) {
+    alert("Adjacent cards are already connected by the automatic order line.");
+    return;
+  }
+
+  const duplicate = project.cardLinks.some((link) => link.fromCardId === fromCardId && link.toCardId === toCardId);
+  if (duplicate) {
+    alert("These cards already have a custom line.");
+    return;
+  }
+
+  project.cardLinks.push({
+    id: crypto.randomUUID(),
+    fromCardId,
+    toCardId,
+  });
+  saveProjects();
+  renderBoardLines();
+}
+
+function deleteCustomCardLink(id) {
+  const project = getActiveProject();
+  if (!project) return;
+  const link = project.cardLinks.find((item) => item.id === id);
+  if (!link) return;
+  if (!confirm("Remove this custom card line? The cards stay on the board.")) return;
+  project.cardLinks = project.cardLinks.filter((item) => item.id !== id);
+  saveProjects();
+  renderBoardLines();
 }
 
 function nextPosition() {
@@ -1593,6 +1914,7 @@ function moveCard(event) {
   card.y = pointer.y - activeDrag.offsetY;
   activeDrag.element.style.left = `${card.x}px`;
   activeDrag.element.style.top = `${card.y}px`;
+  renderBoardLines();
   saveState.textContent = "Moving...";
 }
 
@@ -1742,6 +2064,12 @@ function handlePageZoomKeys(event) {
 }
 
 function handleCardAction(event) {
+  const removeLink = event.target.closest("[data-card-link-remove]");
+  if (removeLink) {
+    deleteCustomCardLink(removeLink.dataset.cardLinkRemove);
+    return;
+  }
+
   const button = event.target.closest("button");
   const cardElement = event.target.closest(".scene-card");
   if (!cardElement) return;
@@ -1791,6 +2119,10 @@ function deleteCard(id) {
   if (!shouldDelete) return;
 
   cards = cards.filter((item) => item.id !== id);
+  const project = getActiveProject();
+  if (project) {
+    project.cardLinks = project.cardLinks.filter((link) => link.fromCardId !== id && link.toCardId !== id);
+  }
   if (editingCardId === id) setEditingMode();
   selectedExportCardIds.delete(id);
   if (activeScriptCardId === id) activeScriptCardId = cards[0]?.id || null;
@@ -1868,6 +2200,7 @@ function clearAllCards() {
 
 form.addEventListener("submit", addCard);
 projectForm.addEventListener("submit", createProject);
+projectEditCancel.addEventListener("click", cancelProjectEdit);
 manualBackup.addEventListener("click", () => downloadDraftItBackup("manual"));
 importBackupInput.addEventListener("change", importDraftItBackup);
 autoBackupToggle.addEventListener("change", () => setAutoBackup(autoBackupToggle.checked));
@@ -1875,12 +2208,18 @@ projectList.addEventListener("click", (event) => {
   const cardsButton = event.target.closest("[data-open-project]");
   const charactersButton = event.target.closest("[data-open-characters]");
   const scriptButton = event.target.closest("[data-open-script]");
+  const editButton = event.target.closest("[data-edit-project]");
+  const exportButton = event.target.closest("[data-export-project]");
+  const deleteButton = event.target.closest("[data-delete-project]");
   if (cardsButton) setActiveProject(cardsButton.dataset.openProject, "cards");
   if (charactersButton) {
     setActiveProject(charactersButton.dataset.openCharacters, "cards");
     openCharactersModal();
   }
   if (scriptButton) setActiveProject(scriptButton.dataset.openScript, "screenplay");
+  if (editButton) startProjectEdit(editButton.dataset.editProject);
+  if (exportButton) downloadDraftItBackup("manual", exportButton.dataset.exportProject);
+  if (deleteButton) deleteProject(deleteButton.dataset.deleteProject);
 });
 swatches.forEach((swatch) => swatch.addEventListener("change", updateSwatches));
 board.addEventListener("pointerdown", beginBoardPointer);
@@ -1889,6 +2228,7 @@ board.addEventListener("pointerup", endBoardPointer);
 board.addEventListener("pointercancel", endBoardPointer);
 board.addEventListener("wheel", handleBoardWheel, { passive: false });
 board.addEventListener("click", handleCardAction);
+addCardLink.addEventListener("click", addCustomCardLink);
 zoomOut.addEventListener("click", () => zoomBoard(boardView.scale / 1.2));
 zoomIn.addEventListener("click", () => zoomBoard(boardView.scale * 1.2));
 zoomReset.addEventListener("click", () => {
@@ -1985,7 +2325,12 @@ characterForm.addEventListener("submit", createCharacter);
 characterAddButton.addEventListener("click", openCharacterForm);
 characterFormClose.addEventListener("click", closeCharacterForm);
 characterTreeButton.addEventListener("click", openCharacterTree);
+characterStrip.addEventListener("pointerdown", beginCharacterStripDrag);
+characterStrip.addEventListener("pointermove", moveCharacterStripDrag);
+characterStrip.addEventListener("pointerup", endCharacterStripDrag);
+characterStrip.addEventListener("pointercancel", endCharacterStripDrag);
 characterStrip.addEventListener("click", (event) => {
+  if (characterStripDrag?.moved) return;
   const thumb = event.target.closest("[data-character-id]");
   if (!thumb) return;
   activeCharacterId = thumb.dataset.characterId;
