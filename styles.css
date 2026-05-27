@@ -374,6 +374,10 @@ body[data-layer="tree"] .screenplay-layer {
   touch-action: none;
 }
 
+.tree-board.is-panning {
+  cursor: grabbing;
+}
+
 .tree-surface {
   position: relative;
   width: 4000px;

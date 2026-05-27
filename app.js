@@ -141,6 +141,7 @@ let exportSelectionTouched = false;
 let screenplayLineMemory = new Map();
 let autoBackupTimer = null;
 let activeTreeDrag = null;
+let activeTreePan = null;
 let editingProjectId = null;
 let characterStripDrag = null;
 let activeTouchZoom = null;
@@ -530,7 +531,7 @@ function updateProject(id, title, author) {
 function deleteProject(id) {
   const project = projects.find((item) => item.id === id);
   if (!project) return;
-  const shouldDelete = confirm(`Delete project "${project.title}"? This removes its cards, characters, tree, and screenplay. This cannot be undone.`);
+  const shouldDelete = confirm(`Delete project "${project.title}"? This removes its cards, characters, map, and screenplay. This cannot be undone.`);
   if (!shouldDelete) return;
 
   projects = projects.filter((item) => item.id !== id);
@@ -1424,7 +1425,19 @@ function deleteTreeNode(id) {
 function beginTreeNodeDrag(event) {
   if (activeTouchZoom) return;
   const node = event.target.closest(".tree-node");
-  if (!node) return;
+  if (!node) {
+    if (event.target.closest("[data-tree-link-id], [data-tree-link-remove]")) return;
+    activeTreePan = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      viewX: treeView.x,
+      viewY: treeView.y,
+    };
+    treeBoard.classList.add("is-panning");
+    treeBoard.setPointerCapture(event.pointerId);
+    return;
+  }
   if (event.target.closest("[data-tree-action]")) return;
   const project = getActiveProject();
   const data = project?.characterTree.nodes.find((item) => item.id === node.dataset.treeNodeId);
@@ -1449,6 +1462,13 @@ function handleTreeNodeAction(event) {
 }
 
 function moveTreeNode(event) {
+  if (activeTreePan) {
+    treeView.x = activeTreePan.viewX + event.clientX - activeTreePan.startX;
+    treeView.y = activeTreePan.viewY + event.clientY - activeTreePan.startY;
+    applyTreeView();
+    return;
+  }
+
   if (!activeTreeDrag) return;
   const project = getActiveProject();
   const node = project?.characterTree.nodes.find((item) => item.id === activeTreeDrag.id);
@@ -1464,6 +1484,12 @@ function moveTreeNode(event) {
 }
 
 function endTreeNodeDrag() {
+  if (activeTreePan) {
+    activeTreePan = null;
+    treeBoard.classList.remove("is-panning");
+    return;
+  }
+
   if (!activeTreeDrag) return;
   activeTreeDrag.element.classList.remove("is-dragging");
   activeTreeDrag = null;
@@ -1622,6 +1648,7 @@ function startTouchZoom(kind, event) {
   event.preventDefault();
   cancelLongPress();
   activePan = null;
+  activeTreePan = null;
   pendingCardDrag = null;
   pointerStart = null;
   if (activeTreeDrag?.element) activeTreeDrag.element.classList.remove("is-dragging");
