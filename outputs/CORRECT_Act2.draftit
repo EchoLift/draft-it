@@ -1,0 +1,326 @@
+{
+  "app": "Draft It",
+  "format": "draftit",
+  "scope": "project",
+  "version": 2,
+  "exportedAt": "2026-05-27T05:10:31.000Z",
+  "exportedAtIst": "2026-05-27 10:40:31 IST",
+  "timezone": "Asia/Kolkata",
+  "project": {
+    "id": "0ea34917-dd63-43b4-9d68-d2b801402e4c",
+    "title": "ACT TWO — The Compression",
+    "author": "Surya",
+    "cards": [
+      {
+        "id": "922d6670-e8b5-403a-acee-503d18150b3f",
+        "title": "1 INT. COMMUNITY HALL — NIGHT [POST-ELDER SCENE]",
+        "scene": "1 INT. COMMUNITY HALL — NIGHT [POST-ELDER SCENE]",
+        "color": "#d7d2ff",
+        "x": 0.0,
+        "y": 0.0,
+        "screenplay": "CAM: Find the geometry of a space that doesn't know where to put what just happened. Hold the empty space after the Elder leaves.\n\nPeople packing up. Conversations slightly too deliberate. The normal noise of departure with one frequency missing.\n\nThe Elder — alone for a moment. Looks at the space Arjun occupied. Takes out his phone. Makes a call. We hear nothing.\n\nHe walks out of frame — still talking.\n\nThe empty space where Arjun stood — held in frame after he leaves.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "4dcb7d82-ce92-443c-974f-603865570e9f",
+        "title": "2 INT. RAMACHANDRAN'S PRIVATE SPACE — NIGHT",
+        "scene": "2 INT. RAMACHANDRAN'S PRIVATE SPACE — NIGHT",
+        "color": "#ffadad",
+        "x": 380.0,
+        "y": 0.0,
+        "screenplay": "CAM: Wide two-shots. Good lighting. These are not villains in shadows. Practical people making a practical decision in good light. That is more frightening.\n\nThe Elder with two TRUSTED PEOPLE. Not a meeting — a conversation.\n\n                    RAMACHANDRAN\n          Find out what he wants.\n\nA pause.\n\n                    RAMACHANDRAN (CONT'D)\n          If he doesn't want anything —\n\nHe doesn't finish. The other two understand.\n\nNot malice. Practicality. That's the point.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "27265e78-46fb-4970-ad0d-a14758f14434",
+        "title": "3 EXT./INT. NEUTRAL SPACE — DAY [SARA APPROACHES ARJUN]",
+        "scene": "3 EXT./INT. NEUTRAL SPACE — DAY [SARA APPROACHES ARJUN]",
+        "color": "#d7d2ff",
+        "x": 760.0,
+        "y": 0.0,
+        "screenplay": "CAM: Equal two-shot. Neither character given visual advantage. Two people playing the same game with different rule sets.\n\nSara finds Arjun. Not accidentally.\n\n                    SARA\n          I want to talk to you.\n\nHe looks at her. Full attention. No warmth. No coldness. Complete reception.\n\n                    ARJUN\n          Okay.\n\nThey find somewhere to sit. She has her argument ready. He has nothing prepared. He doesn't need to prepare for conversations. He just arrives in them.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "df033bf0-cd41-4e25-9248-ab539a029b98",
+        "title": "4 INT. NEUTRAL SPACE — CONTINUOUS [FIRST ARGUMENT]",
+        "scene": "4 INT. NEUTRAL SPACE — CONTINUOUS [FIRST ARGUMENT]",
+        "color": "#ffadad",
+        "x": 1140.0,
+        "y": 0.0,
+        "screenplay": "CAM: Slow push in on her face — almost imperceptible. By the time she stands, the frame is tighter than when she sat down. She doesn't notice.\n\nHer argument — social cohesion, collective ritual, community function. Prepared. Sharp. Real. He listens without moving.\n\nShe finishes. Long silence.\n\n                    ARJUN\n          Every act of kindness you perform in public is a transaction.\n          You are not kind. You are investing.\n\nShe counters immediately. Sharp. The counter she had prepared for exactly this.\n\nHe listens to the counter with the same completeness.\n\nThen — silence. Not searching. A man who heard something that didn't change anything.\n\n                    SARA\n               (controlled composure)\n          This was useful.\n\nShe walks away — straight back, controlled pace, the posture of someone who won.\n\nCamera stays on Arjun. He opens his notebook. Already on to the next thing.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "57c4057b-0c73-4211-b729-3192b7cc63cf",
+        "title": "5 INT. NEUTRAL SPACE — DAY [ADITYA HEARS]",
+        "scene": "5 INT. NEUTRAL SPACE — DAY [ADITYA HEARS]",
+        "color": "#d7d2ff",
+        "x": 0.0,
+        "y": 280.0,
+        "screenplay": "CAM: Stay on Aditya during her retelling. The face of a man who already knows the answer to a question someone else is still forming.\n\nSara tells Aditya about the conversation. Casually. Analytically. An interesting problem she encountered.\n\n                    ADITYA\n          Be careful.\n\n                    SARA\n          Of what? He's just a man with a philosophy.\n\n                    ADITYA\n          Yes.\n\nHe doesn't finish the thought. She doesn't hear the weight in the yes. The audience does.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "69a3a76e-4bda-4809-ae53-9c38489db664",
+        "title": "6 INT. SURYA'S WORKSPACE — DAY",
+        "scene": "6 INT. SURYA'S WORKSPACE — DAY",
+        "color": "#ffe08a",
+        "x": 380.0,
+        "y": 280.0,
+        "screenplay": "CAM: The contrast between the calls. Same Surya. Different energy. The audience reads the difference before Surya can.\n\nSeveral people calling in favors Surya agreed to. Skills deployed for friends who will not return them. He does it all. Without resentment. Genuinely.\n\nThen — Aditya calls. Different conversation.\n\nSurya's posture changes. Not because Aditya is richer. Because Aditya is the only one who exchanges.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "7c103a76-76e1-475d-9864-990680d2d6c9",
+        "title": "7 INT. ARJUN'S APARTMENT — NIGHT",
+        "scene": "7 INT. ARJUN'S APARTMENT — NIGHT",
+        "color": "#d7d2ff",
+        "x": 760.0,
+        "y": 280.0,
+        "screenplay": "CAM: Wide. Respectful of distance. The notebook — the only object the camera finds twice. Don't reach for its contents.\n\nHe enters. No ritual of arrival. Just continues. The apartment as extension of himself. Functional. Minimal. No decorative warmth.\n\nHe opens the notebook. Sits. Writes. Camera stays across the room. We see him writing. We don't see what.\n\nHe closes it. Sits still.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "a1a75cc6-b619-4bf3-9fc0-3f26776aa4a1",
+        "title": "8 INT. EDITORIAL OFFICE — DAY",
+        "scene": "8 INT. EDITORIAL OFFICE — DAY",
+        "color": "#ffadad",
+        "x": 1140.0,
+        "y": 280.0,
+        "screenplay": "CAM: The phone call we don't hear is the scene's center. Shoot the editor's face during it — a man letting someone else make his decision for him.\n\nSURESH THOMAS reads Arjun's latest piece. Longer pause. Reaches for the phone. Conversation we don't hear. Hangs up.\n\n                    SURESH\n          I can't run this one.\n\nArjun looks at him. One beat. Takes the piece back. Walks out. No argument. No anger. Door closed — not slammed.\n\nSuresh sits alone with what he just did.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "dfb149b3-26bb-4938-935b-ee130b1711a4",
+        "title": "9 EXT. PUBLIC SPACE — DAY [SECOND ATTACK]",
+        "scene": "9 EXT. PUBLIC SPACE — DAY [SECOND ATTACK]",
+        "color": "#ffadad",
+        "x": 0.0,
+        "y": 560.0,
+        "screenplay": "CAM: WIDE STATIC. Daylight. No cuts during the violence. No music. No slow motion. Daylight makes it clinical. No shadows to hide in.\n\nA public space. Daytime. THREE MEN — positioned. Not accidental. Someone sent them.\n\nArjun moving through. Sees them. Stops.\n\nThe attack is more organised than the first. More brazen — daylight, public. The machinery getting less careful.\n\nTHE WIDE STATIC FRAME HOLDS.\n\nSame result. Same pattern. Further than needed. In daylight. In public.\n\nHe walks away. People watching. He doesn't look at them.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "933ac9c1-d0d4-4205-8a0f-5abcdd1cd7ae",
+        "title": "10 INT. ADITYA'S HOME — EVENING [THE JACKET]",
+        "scene": "10 INT. ADITYA'S HOME — EVENING [THE JACKET]",
+        "color": "#d7d2ff",
+        "x": 380.0,
+        "y": 560.0,
+        "screenplay": "CAM: The jacket he doesn't remove — find it in the wide shot. Don't underline it. The audience will feel it.\n\nHe enters. Sits without removing his jacket. Body language of a man not settled inside his own space tonight.\n\nHe pours a drink.\n\nDrinks it.\n\nFirst time in the film.\n\nSits with the glass.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "36afb156-c74c-494e-b41d-44a76c1bb338",
+        "title": "11 INT. ADITYA'S SPACE — DAY [SARA HEARS ABOUT ATTACK]",
+        "scene": "11 INT. ADITYA'S SPACE — DAY [SARA HEARS ABOUT ATTACK]",
+        "color": "#ffadad",
+        "x": 760.0,
+        "y": 560.0,
+        "screenplay": "CAM: Two-shot throughout. She is usually the one generating energy. Here — still. Register the stillness in her.\n\nAditya tells her. She listens differently — not building a counter, just receiving.\n\n                    SARA\n          He was attacked first.\n\n                    ADITYA\n          Yes.\n\n                    SARA\n          So he defended himself.\n\n                    ADITYA\n          Further than needed.\n\n                    SARA\n          How much further?\n\nHe tells her. Silence. She doesn't have a clean argument. The absence of argument — louder than argument.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "ef5b9f2d-63ad-4b75-8117-8c71de39730e",
+        "title": "12 INT. NEUTRAL SPACE — DAY [THIRD ARGUMENT — THE LINE]",
+        "scene": "12 INT. NEUTRAL SPACE — DAY [THIRD ARGUMENT — THE LINE]",
+        "color": "#ffadad",
+        "x": 1140.0,
+        "y": 560.0,
+        "screenplay": "CAM: Slow push in — perceptible this time. By the end the frame is tight enough the audience feels the compression with her. Hold on her first stillness.\n\nThird time here. The space has become their space.\n\nShe sits. No prepared argument today. A genuine question.\n\n                    SARA\n          Why do you do this? The journalism. The questions.\n          If you know how people are — why keep trying?\n\n                    ARJUN\n          I don't try to correct anyone. I just refuse to pretend\n          they're correct when they're not.\n\n                    SARA\n          I don't believe in systems or governments.\n          I believe in the people running them.\n\nHe looks at her. Long pause.\n\n                    ARJUN\n          What happens when the people you believe in\n          don't believe in themselves?\n\nShe has no answer. Not because she's slow — because the answer requires Aditya. And she's not ready to go there.\n\nCamera push — perceptible now. Her face filling slightly more frame.\n\nFor the first time — she goes still.\n\nThe frame notices.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "1c57fbec-bb94-4aa4-988b-a1788f16c8f2",
+        "title": "13 INT. SARA'S WORKSPACE — NIGHT [QUESTION FOLLOWS HER]",
+        "scene": "13 INT. SARA'S WORKSPACE — NIGHT [QUESTION FOLLOWS HER]",
+        "color": "#d7d2ff",
+        "x": 0.0,
+        "y": 840.0,
+        "screenplay": "CAM: Her stillness in the space defined by forward motion — a stopped clock. Wrong. Noticeable.\n\nShe enters. Doesn't start working immediately — first time in the film. Sits first.\n\nLooks at her project. At everything she built.\n\nHer phone. Aditya's name. She picks it up. Puts it down. Doesn't call.\n\nOpens her laptop. Types one line. We don't see what. Closes it. Sits in the dark.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "554fc6f8-93aa-4267-a00a-42fec8a99963",
+        "title": "14 INT. ADITYA'S SPACE — EVENING [ADITYA AND SURYA — THE MOTHER STORY]",
+        "scene": "14 INT. ADITYA'S SPACE — EVENING [ADITYA AND SURYA — THE MOTHER STORY]",
+        "color": "#ffe08a",
+        "x": 380.0,
+        "y": 840.0,
+        "screenplay": "CAM: WIDE. Stay wide. Don't push in on either face. The restraint is the scene's power.\n\nWorking. Comfortable silence. The silence of two people who no longer need to fill space.\n\nSomething triggers it. An ambulance passing outside. A sound. Anything ordinary.\n\nAditya doesn't react visibly.\n\nThen — quietly. Without turning around.\n\n                    ADITYA\n          My mother died on the street. Heart attack.\n          I was eleven. She fell on my lap. I kept calling\n          her name for twenty minutes. People walked around us.\n\nBeat.\n\n                    ADITYA (CONT'D)\n          Twenty minutes. Not one person stopped.\n\nFLASHBACK — SMASH CUT:\n\nA street. Day. A woman on the ground. A boy's hands. Her face. People's legs walking past — only legs. No faces. Moving. Continuing. The street's sound. Nothing else.\n\nBACK TO PRESENT. Same silence. Surya doesn't move. Doesn't say sorry.\n\n                    SURYA\n          Is that why you don't care about people?\n\n                    ADITYA\n          Is that why you think I don't care about people.\n\nNot a question. Not a correction. Something in between.\n\nThe conversation moves on. Or ends. Nothing more is said about it.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "bcefcf41-16fd-4227-a8d3-befc300cd9b9",
+        "title": "15 INT. FAMILY OFFICE — EVENING [ADITYA'S FATHER — THE TRUTH]",
+        "scene": "15 INT. FAMILY OFFICE — EVENING [ADITYA'S FATHER — THE TRUTH]",
+        "color": "#d7d2ff",
+        "x": 760.0,
+        "y": 840.0,
+        "screenplay": "CAM: Find the father's stillness — thirty seconds at most — and hold it. This is the most honest thing this man has ever shown.\n\nAditya stays late. Alone in the office.\n\nHe finds something — not dramatically. A calendar. A note. An anniversary marked in his father's handwriting. His mother's name. Every year. Marked. Private.\n\nHis father enters. Doesn't see him. Goes to his desk. Sits.\n\nFor the first time — Aditya watches his father when his father doesn't know he's being watched.\n\nThe man who is always moving — is completely still. Just for a moment.\n\nThen the phone rings. He answers. Motion restored. He notices Aditya.\n\nNeither acknowledges what just happened.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "7b0aac03-da87-4e6b-a039-ca6e3d5d5e55",
+        "title": "16 INT. COMMUNITY GATHERING — DAY [THE SYMBOL EXPOSED]",
+        "scene": "16 INT. COMMUNITY GATHERING — DAY [THE SYMBOL EXPOSED]",
+        "color": "#ffadad",
+        "x": 1140.0,
+        "y": 840.0,
+        "screenplay": "CAM: Slow pan — Arjun to Aditya to Sara. No cuts. One continuous movement. The audience reads the triangle in real time.\n\nA gathering. Enough ears.\n\nA TOWN PERSON asks Arjun directly about Devraj Pillai. The question expects affirmation.\n\n                    ARJUN\n               (flat — a fact, not an attack)\n          He was not from Dharavi. He was not self-made. The family\n          he described losing — the timeline doesn't hold. What he\n          built is real. What he claimed to build it from isn't.\n\nTHE ROOM — stillness. The system receiving a corrupted input.\n\nCamera — slow pan — finds ADITYA at the back of frame.\n\nOne frame — he knew. Has known. Then closes.\n\nPan continues — finds SARA. She looks at Aditya. He doesn't meet her eyes.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "31f7cb4c-1d15-4611-9b82-cf002c649955",
+        "title": "17 INT. SARA'S SPACE — DAY [FIRST FRACTURE]",
+        "scene": "17 INT. SARA'S SPACE — DAY [FIRST FRACTURE]",
+        "color": "#ffadad",
+        "x": 0.0,
+        "y": 1120.0,
+        "screenplay": "CAM: They start in their usual equal two-shot. By the end — slightly more space between them in the frame. Not dramatic. Measurable.\n\n                    SARA\n          You knew.\n\nNot a question.\n\n                    ADITYA\n          Yes.\n\n                    SARA\n          How long?\n\nHe tells her.\n\nSilence. Not anger. The process of a person updating their understanding of someone they trusted.\n\nShe leaves differently than she arrived.\n\nCamera stays on Aditya. The glass around him — showing its first real crack.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "516dd33c-4ca7-4988-bf06-0dee09720259",
+        "title": "18 EXT./INT. VARUN METRO — EVENING [THIRD ATTACK — NOTEBOOK SHIFT]",
+        "scene": "18 EXT./INT. VARUN METRO — EVENING [THIRD ATTACK — NOTEBOOK SHIFT]",
+        "color": "#ffadad",
+        "x": 380.0,
+        "y": 1120.0,
+        "screenplay": "CAM: The stop and turn back — hold it. The notebook in close up for the first time. The pen moving. Not the words. The action of writing is enough.\n\nMore attackers this time. Positioned deliberately. Professional enough to be concerning. Not professional enough to succeed.\n\nWIDE STATIC. Same result. He walks away.\n\nBut this time — he stops. Turns back. Looks at them.\n\nNot anger. Calculation.\n\nHe takes out his notebook. Writes something. We don't see what. Puts it away. Continues.\n\nThat notebook moment — something has shifted.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "cc6fc979-6225-4b5a-a7cf-92b875449c6b",
+        "title": "19 INT. A ROOM — DAY [ADITYA IS ASKED PUBLICLY]",
+        "scene": "19 INT. A ROOM — DAY [ADITYA IS ASKED PUBLICLY]",
+        "color": "#ffadad",
+        "x": 760.0,
+        "y": 1120.0,
+        "screenplay": "CAM: The one second of hesitation is the scene's entire purpose. Find it. Hold it. Let the audience feel its weight before the careful thing closes it. Reveal Sara late — camera pull back.\n\nThe Elder addresses Aditya. People present.\n\n                    RAMACHANDRAN\n          Say something. The town needs to hear something from you.\n\nAditya.\n\nOne second.\n\nThe audience sees what's in that second — the true thing almost arriving.\n\nThen —\n\n                    ADITYA\n               (the careful thing)\n          He's someone with strong opinions and a particular way\n          of expressing them. That doesn't make him right or wrong.\n          It makes him difficult. And difficult isn't dangerous.\n\nCamera pulls back — wider than expected.\n\nREVEALS: SARA in the room. She was there the whole time. We didn't see her.\n\nHer face as Aditya speaks his careful words — doesn't change. That is worse than if it did.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "e21f3220-5bfe-46ba-8e09-9664f9195f9e",
+        "title": "20 INT. SURYA'S WORKSPACE — DAY [SURYA TRACKS ARJUN]",
+        "scene": "20 INT. SURYA'S WORKSPACE — DAY [SURYA TRACKS ARJUN]",
+        "color": "#caffbf",
+        "x": 1140.0,
+        "y": 1120.0,
+        "screenplay": "CAM: Surya working. Aditya arriving. The folder already on the table.\n\nAditya doesn't ask. Surya is already three steps ahead.\n\nDigital patterns. Movements. He's been building a picture of Arjun since the second attack. Not because Aditya told him. Because Surya understood where this was going before Aditya admitted it.\n\nHe has a folder ready the moment Aditya walks through the door.\n\n                    ADITYA\n          How long have you been doing this?\n\n                    SURYA\n          Since you stopped sleeping properly.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "fe5a46cd-87ef-4d01-bef6-0cf08514c9f7",
+        "title": "21 INT. ARJUN'S APARTMENT — NIGHT [THE LIST BEGINS]",
+        "scene": "21 INT. ARJUN'S APARTMENT — NIGHT [THE LIST BEGINS]",
+        "color": "#d7d2ff",
+        "x": 0.0,
+        "y": 1400.0,
+        "screenplay": "CAM: Mirror of the opening image — phone, rejection, Thanos — but inverted. Opening: he didn't look. Here: he does. The difference in that one look is the whole film's turning point.\n\nA new day. Desk cleared. No journalism. Just the notebook.\n\nHe opens to a new page. Writes.\n\nPhone rings. He rejects it.\n\nThanos wallpaper.\n\nThis time — he looks at it. One beat.\n\nSets it face-down.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "99a5d153-2973-4979-999a-f1bad70117b6",
+        "title": "22 INT. ADITYA'S SPACE — EVENING [ARJUN VISITS ADITYA]",
+        "scene": "22 INT. ADITYA'S SPACE — EVENING [ARJUN VISITS ADITYA]",
+        "color": "#d7d2ff",
+        "x": 380.0,
+        "y": 1400.0,
+        "screenplay": "CAM: Two chess players with no pieces on the board yet. Just recognition.\n\nArjun arrives. No announcement. Aditya opens the door.\n\n                    ADITYA\n          Come in.\n\nBrief exchange. Both men understanding exactly what is happening inside the other. Neither performing that understanding.\n\nArjun leaves.\n\nAditya watches him go from the doorway. Knows what's coming.\n\nThe door closes. He stands on his side of the closed door. The choice — not made yet. But forming.\n\n                                        CUT TO:\n"
+      },
+      {
+        "id": "18f7a9d7-f723-4ea0-a147-bd79cb62cab1",
+        "title": "23 INT. ARJUN'S APARTMENT — DAY [ADITYA FINDS THE NOTEBOOK]",
+        "scene": "23 INT. ARJUN'S APARTMENT — DAY [ADITYA FINDS THE NOTEBOOK]",
+        "color": "#ffadad",
+        "x": 760.0,
+        "y": 1400.0,
+        "screenplay": "CAM: His own name. Hold longer than any face shot in the film so far.\n\nThe apartment. Aditya moving through it carefully. Finds the notebook. Opens it.\n\nHis face — moving through the names. Computing.\n\nThen — his father's name.\n\nPAUSE.\n\nNot fear. Something more complicated. The face of a man who spent his whole life believing his father didn't deserve his care — finding out that the only person who agrees with him put his father on a list.\n\nHe closes the notebook. Puts it back. Exactly where it was.\n\nStands in Arjun's apartment — the most honest space in the film.\n\nThe lie he has believed his whole life — everyone is selfish — meets its counter: a man who worked every day to forget a woman because forgetting her was the only way to keep living.\n\nThat's not selfish. That's grief.\n\n                                        SMASH CUT TO BLACK.\n\n— END OF ACT TWO —\n\n                                        FADE OUT.\n"
+      }
+    ],
+    "cardLinks": [],
+    "characters": [
+      {
+        "id": "9f67bab1-2ebe-4bf5-bfca-ba3701e50c2f",
+        "name": "Arjun Rao",
+        "gender": "MALE",
+        "screenTime": "LONG",
+        "desire": "To see justice served to everyone, without exception.",
+        "fear": "Nothing. That is the most dangerous thing about him.",
+        "lie": "Killing the powerful will make the world better. He cannot see that people replace people.",
+        "shade": "Gray"
+      },
+      {
+        "id": "c3e95a6e-4bbe-495f-bb15-961d52a2ec67",
+        "name": "Aditya",
+        "gender": "MALE",
+        "screenTime": "LONG",
+        "desire": "To disappear. Mountains. A lowkey life. Gone.",
+        "fear": "His mother died on his lap on a public street. No one stopped. Twenty minutes. That verdict — people don't stop for each other — is the wound.",
+        "lie": "Everyone is selfish, including his father. He doesn't know yet that his father built an empire to outrun grief, not to abandon his son.",
+        "shade": "Gray"
+      },
+      {
+        "id": "1f25d164-7176-4891-8b36-70fc71486f38",
+        "name": "Sara",
+        "gender": "FEMALE",
+        "screenTime": "LONG",
+        "desire": "Her family's belief. Not money. Not fame. Just her parents looking at her the way parents look at a child they trust.",
+        "fear": "She gave her trust to someone at 18. He used it and left. Her family's look changed permanently. She lives with that look every day.",
+        "lie": "No man loves unconditionally. Every man wants something before he gives anything. That's why she challenges instead of begs.",
+        "shade": "Gray"
+      },
+      {
+        "id": "20546f27-c45d-4b78-ba1b-66a92805d6c8",
+        "name": "Surya",
+        "gender": "MALE",
+        "screenTime": "LONG",
+        "desire": "To escape the rat race — and pull everyone he loves up with him.",
+        "fear": "Being stuck. Not failure — stagnation. The window closing without him noticing.",
+        "lie": "Loyalty always pays off. This belief has been exploited by everyone who ever recognised it in him. Aditya is the first person who exchanges instead of takes.",
+        "shade": "Gray"
+      }
+    ],
+    "characterTree": {
+      "nodes": [
+        {
+          "id": "9f67bab1-2ebe-4bf5-bfca-ba3701e50c2f",
+          "characterId": "9f67bab1-2ebe-4bf5-bfca-ba3701e50c2f",
+          "name": "Arjun Rao",
+          "x": 0.0,
+          "y": 0.0
+        },
+        {
+          "id": "c3e95a6e-4bbe-495f-bb15-961d52a2ec67",
+          "characterId": "c3e95a6e-4bbe-495f-bb15-961d52a2ec67",
+          "name": "Aditya",
+          "x": 260.0,
+          "y": 0.0
+        },
+        {
+          "id": "1f25d164-7176-4891-8b36-70fc71486f38",
+          "characterId": "1f25d164-7176-4891-8b36-70fc71486f38",
+          "name": "Sara",
+          "x": 520.0,
+          "y": 0.0
+        },
+        {
+          "id": "20546f27-c45d-4b78-ba1b-66a92805d6c8",
+          "characterId": "20546f27-c45d-4b78-ba1b-66a92805d6c8",
+          "name": "Surya",
+          "x": 780.0,
+          "y": 0.0
+        }
+      ],
+      "links": [
+        {
+          "id": "9f238114-b83f-4264-9371-b549ca68cdb7",
+          "source": "c3e95a6e-4bbe-495f-bb15-961d52a2ec67",
+          "target": "20546f27-c45d-4b78-ba1b-66a92805d6c8",
+          "label": "Friendship — Harvey and Mike"
+        },
+        {
+          "id": "923ce3c1-6ac8-4ca1-b69c-97a945ed21d5",
+          "source": "c3e95a6e-4bbe-495f-bb15-961d52a2ec67",
+          "target": "9f67bab1-2ebe-4bf5-bfca-ba3701e50c2f",
+          "label": "Ideological enemy"
+        },
+        {
+          "id": "2b19397e-1de9-448a-83a2-998a7b4c80b9",
+          "source": "c3e95a6e-4bbe-495f-bb15-961d52a2ec67",
+          "target": "1f25d164-7176-4891-8b36-70fc71486f38",
+          "label": "Challenges worldview"
+        },
+        {
+          "id": "50a14f72-f55c-40b8-9891-47a90498ed1b",
+          "source": "1f25d164-7176-4891-8b36-70fc71486f38",
+          "target": "9f67bab1-2ebe-4bf5-bfca-ba3701e50c2f",
+          "label": "Understands him — only one"
+        }
+      ]
+    },
+    "screenplay": "",
+    "createdAt": "2026-05-27T05:10:31.000Z"
+  }
+}

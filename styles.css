@@ -1753,13 +1753,24 @@ select:focus {
 }
 
 @media (max-width: 840px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
+  }
+
   body {
     min-height: 100dvh;
   }
 
   .app-shell {
     grid-template-columns: 1fr;
-    height: 100dvh;
+    min-height: calc(100dvh + 1px);
+    height: auto;
   }
 
   .panel {

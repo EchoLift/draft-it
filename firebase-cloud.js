@@ -10,12 +10,10 @@ import {
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
-  collection,
   doc,
-  getDocs,
   getFirestore,
-  orderBy,
-  query,
+  getDoc,
+  onSnapshot,
   serverTimestamp,
   setDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
@@ -42,6 +40,7 @@ isAnalyticsSupported().then((supported) => {
 
 let currentUser = null;
 let currentIsAdmin = false;
+let unsubscribeWorkspace = null;
 
 function emitAuthState() {
   window.dispatchEvent(new CustomEvent("draftit-cloud-auth", {
@@ -62,8 +61,8 @@ function assertAdmin() {
   }
 }
 
-function projectDocument(projectId) {
-  return doc(db, "adminCloud", currentUser.uid, "projects", projectId);
+function workspaceDocument() {
+  return doc(db, "adminCloud", currentUser.uid, "workspace", "current");
 }
 
 async function signInAdmin({ redirectToApp = false } = {}) {
@@ -78,28 +77,37 @@ async function signInAdmin({ redirectToApp = false } = {}) {
   return credential.user;
 }
 
-async function syncProject(payload) {
+async function syncWorkspace(payload) {
   assertAdmin();
-  const project = payload?.project;
-  if (!project?.id) throw new Error("No project selected for cloud sync.");
+  if (!Array.isArray(payload?.projects)) throw new Error("No projects found for cloud sync.");
 
-  await setDoc(projectDocument(project.id), {
+  await setDoc(workspaceDocument(), {
     ...payload,
-    projectId: project.id,
-    title: project.title || "Untitled Project",
-    author: project.author || "",
+    projectCount: payload.projects.length,
     updatedAt: serverTimestamp(),
   });
 }
 
-async function listProjects() {
+async function getWorkspace() {
   assertAdmin();
-  const projectsRef = collection(db, "adminCloud", currentUser.uid, "projects");
-  const snapshot = await getDocs(query(projectsRef, orderBy("updatedAt", "desc")));
-  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+  const snapshot = await getDoc(workspaceDocument());
+  return snapshot.exists() ? snapshot.data() : null;
+}
+
+function watchWorkspace(callback) {
+  assertAdmin();
+  if (unsubscribeWorkspace) unsubscribeWorkspace();
+  unsubscribeWorkspace = onSnapshot(workspaceDocument(), (snapshot) => {
+    callback(snapshot.exists() ? snapshot.data() : null);
+  });
+  return unsubscribeWorkspace;
 }
 
 async function signOutAdmin() {
+  if (unsubscribeWorkspace) {
+    unsubscribeWorkspace();
+    unsubscribeWorkspace = null;
+  }
   await signOut(auth);
 }
 
@@ -126,8 +134,9 @@ window.draftItCloud = {
   getUser: () => currentUser,
   signInAdmin,
   signOutAdmin,
-  syncProject,
-  listProjects,
+  syncWorkspace,
+  getWorkspace,
+  watchWorkspace,
 };
 
 onAuthStateChanged(auth, (user) => {

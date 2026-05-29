@@ -7,7 +7,7 @@ service cloud.firestore {
         && request.auth.token.email == "illasuryanani2001@gmail.com";
     }
 
-    match /adminCloud/{userId}/projects/{projectId} {
+    match /adminCloud/{userId}/workspace/{document=**} {
       allow read, write: if isDraftItAdmin()
         && request.auth.uid == userId;
     }

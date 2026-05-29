@@ -149,6 +149,8 @@ let editingProjectId = null;
 let characterStripDrag = null;
 let activeTouchZoom = null;
 let boardLinesFrame = null;
+let applyingCloudSnapshot = false;
+let cloudWorkspaceUnsubscribe = null;
 
 function loadProjects() {
   try {
@@ -209,6 +211,7 @@ function getActiveProject() {
 function saveProjects() {
   localStorage.setItem(projectsStorageKey, JSON.stringify(projects));
   if (activeProjectId) localStorage.setItem(activeProjectStorageKey, activeProjectId);
+  if (!applyingCloudSnapshot) localStorage.setItem("draft-it-local-updated-at", new Date().toISOString());
 }
 
 function slugifyBackupName(value) {
@@ -236,6 +239,21 @@ function getDraftItBackupPayload(project = getActiveProject()) {
     exportedAtIst: formatIstTimestamp(exportedAt),
     timezone: backupTimezone,
     project: cloneProjectForBackup(project),
+  };
+}
+
+function getDraftItWorkspacePayload() {
+  const exportedAt = new Date();
+  return {
+    app: "Draft It",
+    format: "draftit",
+    scope: "workspace",
+    version: 3,
+    exportedAt: exportedAt.toISOString(),
+    exportedAtIst: formatIstTimestamp(exportedAt),
+    timezone: backupTimezone,
+    activeProjectId,
+    projects: projects.map(cloneProjectForBackup),
   };
 }
 
@@ -314,6 +332,32 @@ function getImportedProjectList(payload) {
   return normalizeImportedProjects(payload?.projects || payload);
 }
 
+function mergeCloudProjects(cloudProjects, preferredActiveProjectId = activeProjectId) {
+  const importedProjects = normalizeImportedProjects(cloudProjects);
+  if (!importedProjects.length) return 0;
+
+  projects = importedProjects;
+  activeProjectId = projects.some((project) => project.id === preferredActiveProjectId)
+    ? preferredActiveProjectId
+    : projects[0]?.id || null;
+
+  cards = getActiveProject()?.cards || [];
+  activeScriptCardId = cards.some((card) => card.id === activeScriptCardId)
+    ? activeScriptCardId
+    : cards[0]?.id || null;
+  selectedExportCardIds = new Set(cards.map((card) => card.id));
+  exportSelectionTouched = false;
+
+  applyingCloudSnapshot = true;
+  saveProjects();
+  applyingCloudSnapshot = false;
+  renderProjects();
+  render();
+  if (document.body.dataset.layer === "screenplay") renderScreenplay();
+  if (document.body.dataset.layer === "tree") renderCharacterTree();
+  return importedProjects.length;
+}
+
 function restoreDraftItBackup(payload) {
   const importedProjects = getImportedProjectList(payload);
   if (!importedProjects.length) {
@@ -375,23 +419,50 @@ function updateCloudControls(event) {
   });
   if (isAdmin) {
     backupStatus.textContent = `Cloud sync ready for ${window.draftItCloud?.getUser?.()?.email || "admin"}`;
+    startCloudWorkspaceWatch();
+  } else if (cloudWorkspaceUnsubscribe) {
+    cloudWorkspaceUnsubscribe();
+    cloudWorkspaceUnsubscribe = null;
   }
 }
 
-async function syncActiveProjectToCloud() {
+function getSnapshotUpdatedMs(snapshot) {
+  if (!snapshot) return 0;
+  if (typeof snapshot.updatedAt?.toMillis === "function") return snapshot.updatedAt.toMillis();
+  if (snapshot.exportedAt) return Date.parse(snapshot.exportedAt) || 0;
+  return 0;
+}
+
+function getLocalUpdatedMs() {
+  return Date.parse(localStorage.getItem("draft-it-local-updated-at") || "") || 0;
+}
+
+function startCloudWorkspaceWatch() {
+  const cloud = window.draftItCloud;
+  if (!cloud?.isAdmin?.() || cloudWorkspaceUnsubscribe) return;
+
+  cloudWorkspaceUnsubscribe = cloud.watchWorkspace((snapshot) => {
+    if (!snapshot?.projects?.length) return;
+    const cloudUpdated = getSnapshotUpdatedMs(snapshot);
+    if (cloudUpdated && cloudUpdated < getLocalUpdatedMs()) return;
+    const count = mergeCloudProjects(snapshot.projects, snapshot.activeProjectId);
+    backupStatus.textContent = `Cloud updated ${count} project${count === 1 ? "" : "s"}`;
+  });
+}
+
+async function syncWorkspaceToCloud() {
   const cloud = window.draftItCloud;
   if (!cloud?.isAdmin?.()) return;
-  const project = getActiveProject();
-  if (!project) {
-    alert("Create or select a project before syncing to cloud.");
+  if (!projects.length) {
+    alert("Create a project before syncing to cloud.");
     return;
   }
 
   cloudSyncButton.disabled = true;
-  backupStatus.textContent = "Syncing active project to cloud...";
+  backupStatus.textContent = "Syncing workspace to cloud...";
   try {
-    await cloud.syncProject(getDraftItBackupPayload(project));
-    backupStatus.textContent = `Cloud synced: ${project.title}`;
+    await cloud.syncWorkspace(getDraftItWorkspacePayload());
+    backupStatus.textContent = `Cloud synced ${projects.length} project${projects.length === 1 ? "" : "s"}`;
   } catch (error) {
     backupStatus.textContent = "Cloud sync failed";
     alert(getCloudSyncErrorMessage(error));
@@ -405,34 +476,17 @@ async function importProjectFromCloud() {
   if (!cloud?.isAdmin?.()) return;
 
   cloudImportButton.disabled = true;
-  backupStatus.textContent = "Reading cloud projects...";
+  backupStatus.textContent = "Reading cloud workspace...";
   try {
-    const cloudProjects = await cloud.listProjects();
-    if (!cloudProjects.length) {
-      backupStatus.textContent = "No cloud projects found";
-      alert("No cloud projects found for this admin account.");
+    const workspace = await cloud.getWorkspace();
+    if (!workspace?.projects?.length) {
+      backupStatus.textContent = "No cloud workspace found";
+      alert("No cloud workspace found for this admin account.");
       return;
     }
 
-    const list = cloudProjects
-      .map((item, index) => `${index + 1}. ${item.title || item.project?.title || "Untitled Project"}`)
-      .join("\n");
-    const choice = prompt(`Import which cloud project?\n\n${list}`);
-    if (choice === null) {
-      backupStatus.textContent = "Cloud import cancelled";
-      return;
-    }
-
-    const index = Number.parseInt(choice, 10) - 1;
-    const selected = cloudProjects[index];
-    if (!selected?.project) {
-      alert("Choose a valid project number.");
-      backupStatus.textContent = "Cloud import cancelled";
-      return;
-    }
-
-    restoreDraftItBackup(selected);
-    backupStatus.textContent = `Cloud imported: ${selected.project.title || "Untitled Project"}`;
+    const count = mergeCloudProjects(workspace.projects, workspace.activeProjectId);
+    backupStatus.textContent = `Cloud imported ${count} project${count === 1 ? "" : "s"}`;
   } catch (error) {
     backupStatus.textContent = "Cloud import failed";
     alert(getCloudSyncErrorMessage(error));
@@ -2422,7 +2476,7 @@ projectEditCancel.addEventListener("click", cancelProjectEdit);
 manualBackup.addEventListener("click", () => downloadDraftItBackup("manual"));
 importBackupInput.addEventListener("change", importDraftItBackup);
 autoBackupToggle.addEventListener("change", () => setAutoBackup(autoBackupToggle.checked));
-cloudSyncButton.addEventListener("click", syncActiveProjectToCloud);
+cloudSyncButton.addEventListener("click", syncWorkspaceToCloud);
 cloudImportButton.addEventListener("click", importProjectFromCloud);
 cloudSignOutButton.addEventListener("click", signOutCloudAdmin);
 window.addEventListener("draftit-cloud-auth", updateCloudControls);
