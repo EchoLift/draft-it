@@ -130,6 +130,10 @@ body[data-layer="tree"] .screenplay-layer {
   font-weight: 800;
 }
 
+.cloud-admin-control[hidden] {
+  display: none;
+}
+
 .project-header-links {
   margin-left: auto;
   display: flex;

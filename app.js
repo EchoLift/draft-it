@@ -10,6 +10,9 @@ const projectList = document.querySelector("#project-list");
 const manualBackup = document.querySelector("#manual-backup");
 const importBackupInput = document.querySelector("#import-backup-input");
 const autoBackupToggle = document.querySelector("#auto-backup-toggle");
+const cloudSyncButton = document.querySelector("#cloud-sync");
+const cloudImportButton = document.querySelector("#cloud-import");
+const cloudSignOutButton = document.querySelector("#cloud-sign-out");
 const backupStatus = document.querySelector("#backup-status");
 const activeProjectTitle = document.querySelector("#active-project-title");
 const screenplayProjectTitle = document.querySelector("#screenplay-project-title");
@@ -363,6 +366,101 @@ function importDraftItBackup(event) {
     }
   };
   reader.readAsText(file);
+}
+
+function updateCloudControls(event) {
+  const isAdmin = Boolean(event?.detail?.isAdmin || window.draftItCloud?.isAdmin?.());
+  [cloudSyncButton, cloudImportButton, cloudSignOutButton].forEach((button) => {
+    if (button) button.hidden = !isAdmin;
+  });
+  if (isAdmin) {
+    backupStatus.textContent = `Cloud sync ready for ${window.draftItCloud?.getUser?.()?.email || "admin"}`;
+  }
+}
+
+async function syncActiveProjectToCloud() {
+  const cloud = window.draftItCloud;
+  if (!cloud?.isAdmin?.()) return;
+  const project = getActiveProject();
+  if (!project) {
+    alert("Create or select a project before syncing to cloud.");
+    return;
+  }
+
+  cloudSyncButton.disabled = true;
+  backupStatus.textContent = "Syncing active project to cloud...";
+  try {
+    await cloud.syncProject(getDraftItBackupPayload(project));
+    backupStatus.textContent = `Cloud synced: ${project.title}`;
+  } catch (error) {
+    backupStatus.textContent = "Cloud sync failed";
+    alert(getCloudSyncErrorMessage(error));
+  } finally {
+    cloudSyncButton.disabled = false;
+  }
+}
+
+async function importProjectFromCloud() {
+  const cloud = window.draftItCloud;
+  if (!cloud?.isAdmin?.()) return;
+
+  cloudImportButton.disabled = true;
+  backupStatus.textContent = "Reading cloud projects...";
+  try {
+    const cloudProjects = await cloud.listProjects();
+    if (!cloudProjects.length) {
+      backupStatus.textContent = "No cloud projects found";
+      alert("No cloud projects found for this admin account.");
+      return;
+    }
+
+    const list = cloudProjects
+      .map((item, index) => `${index + 1}. ${item.title || item.project?.title || "Untitled Project"}`)
+      .join("\n");
+    const choice = prompt(`Import which cloud project?\n\n${list}`);
+    if (choice === null) {
+      backupStatus.textContent = "Cloud import cancelled";
+      return;
+    }
+
+    const index = Number.parseInt(choice, 10) - 1;
+    const selected = cloudProjects[index];
+    if (!selected?.project) {
+      alert("Choose a valid project number.");
+      backupStatus.textContent = "Cloud import cancelled";
+      return;
+    }
+
+    restoreDraftItBackup(selected);
+    backupStatus.textContent = `Cloud imported: ${selected.project.title || "Untitled Project"}`;
+  } catch (error) {
+    backupStatus.textContent = "Cloud import failed";
+    alert(getCloudSyncErrorMessage(error));
+  } finally {
+    cloudImportButton.disabled = false;
+  }
+}
+
+function getCloudSyncErrorMessage(error) {
+  if (error?.code === "permission-denied") {
+    return [
+      "Firestore refused cloud sync because the database rules are not allowing this admin account yet.",
+      "",
+      "Open Firebase Console > Firestore Database > Rules and publish the rules from firestore.rules.",
+    ].join("\n");
+  }
+
+  return error?.message || "Cloud sync failed.";
+}
+
+async function signOutCloudAdmin() {
+  try {
+    await window.draftItCloud?.signOutAdmin?.();
+    updateCloudControls({ detail: { isAdmin: false } });
+    backupStatus.textContent = "Cloud signed out";
+  } catch (error) {
+    alert(error.message || "Could not sign out of cloud sync.");
+  }
 }
 
 function setAutoBackup(enabled) {
@@ -2324,6 +2422,10 @@ projectEditCancel.addEventListener("click", cancelProjectEdit);
 manualBackup.addEventListener("click", () => downloadDraftItBackup("manual"));
 importBackupInput.addEventListener("change", importDraftItBackup);
 autoBackupToggle.addEventListener("change", () => setAutoBackup(autoBackupToggle.checked));
+cloudSyncButton.addEventListener("click", syncActiveProjectToCloud);
+cloudImportButton.addEventListener("click", importProjectFromCloud);
+cloudSignOutButton.addEventListener("click", signOutCloudAdmin);
+window.addEventListener("draftit-cloud-auth", updateCloudControls);
 projectList.addEventListener("click", (event) => {
   const cardsButton = event.target.closest("[data-open-project]");
   const charactersButton = event.target.closest("[data-open-characters]");
@@ -2499,6 +2601,7 @@ document.addEventListener(
 
 applyBoardView();
 setAutoBackup(localStorage.getItem(autoBackupStorageKey) === "true");
+updateCloudControls();
 renderProjects();
 if (activeProjectId && getActiveProject()) {
   render();

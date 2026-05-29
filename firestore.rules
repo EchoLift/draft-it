@@ -1,0 +1,15 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isDraftItAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "illasuryanani2001@gmail.com";
+    }
+
+    match /adminCloud/{userId}/projects/{projectId} {
+      allow read, write: if isDraftItAdmin()
+        && request.auth.uid == userId;
+    }
+  }
+}
